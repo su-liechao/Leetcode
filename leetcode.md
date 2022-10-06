@@ -372,7 +372,7 @@ public:
 
 比较的是两个子树的里侧和外侧的元素是否相等。如图所示：
 
-<img src="https://img-blog.csdnimg.cn/20210203144624414.png" alt="101. 对称二叉树1" style="zoom:50%;" />
+<img src="https://img-blog.csdnimg.cn/20210203144624414.png" alt="101. 对称二叉树1" style="zoom: 33%;" />
 
 那么遍历的顺序应该是什么样的呢？
 
@@ -447,17 +447,370 @@ public:
 };
 ```
 
+### 五、二叉树深度
+
+#### 1.二叉树的最大深度
+
+[力扣题目链接](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
+
+**1.1递归**
+
+​	1.确定递归函数的参数和返回值：参数就是传入树的根节点，返回就返回这棵树的深度，所以返回值为int类型。
+
+代码如下：
+
+```cpp
+int getdepth(treenode* node)
+```
+
+​	2.确定终止条件：如果为空节点的话，就返回0，表示高度为0。
+
+代码如下：
+
+```cpp
+if (node == NULL) return 0;
+```
+
+​	3.确定单层递归的逻辑：先求它的左子树的深度，再求的右子树的深度，最后取左右深度最大的数值 再+1 （加1是因为算上当前中间节点）就是目前节点为根节点的树的深度。
+
+代码如下：
+
+```cpp
+int leftdepth = getdepth(node->left);       // 左
+int rightdepth = getdepth(node->right);     // 右
+int depth = 1 + max(leftdepth, rightdepth); // 中
+return depth;
+```
+
+所以整体c++代码如下：
+
+```cpp
+class solution {
+public:
+    int getdepth(treenode* node) {
+        if (node == NULL) return 0;
+        int leftdepth = getdepth(node->left);       // 左
+        int rightdepth = getdepth(node->right);     // 右
+        int depth = 1 + max(leftdepth, rightdepth); // 中
+        return depth;
+    }
+    int maxdepth(treenode* root) {
+        return getdepth(root);
+    }
+};
+```
+
+**1.2迭代(层序遍历)**
+
+```c++
+// 层序遍历
+class Solution {
+public:
+    int maxDepth(TreeNode* root) {
+        TreeNode* node;
+        queue<TreeNode*> q;
+        int depth = 0;
+        if(root == nullptr) {
+            return 0;
+        }
+        q.push(root);
+        while(!q.empty()) {
+            depth++;
+            int size = q.size();
+            for(int i = 0; i < size; i++) {
+                node = q.front();q.pop();
+                if(node->left) q.push(node->left);
+                if(node->right) q.push(node->right);
+            }
+        }
+        return depth;
+    }
+};
+```
 
 
 
+#### 2.二叉树的最小深度
 
+[力扣题目链接](https://leetcode.cn/problems/minimum-depth-of-binary-tree/)
 
+**审题：最小深度是从根节点到最近叶子节点的最短路径上的节点数量。**注意是叶子节点。
 
+<img src="https://img-blog.csdnimg.cn/20210203155800503.png" alt="111.二叉树的最小深度" style="zoom: 50%;" />
 
+**1.1递归**
 
+​	1.确定递归函数的参数和返回值
 
+参数为要传入的二叉树根节点，返回的是int类型的深度。
 
+代码如下：
 
+```c++
+int getDepth(TreeNode* node)
+```
+
+​	2.确定终止条件
+
+终止条件也是遇到空节点返回0，表示当前节点的高度为0。
+
+代码如下：
+
+```c++
+if (node == NULL) return 0;
+```
+
+​	3.确定单层递归的逻辑
+
+这块和求最大深度可就不一样了，**如下代码会犯上图的错误：**
+
+```c++
+int leftDepth = getDepth(node->left);
+int rightDepth = getDepth(node->right);
+int result = 1 + min(leftDepth, rightDepth);
+return result;
+```
+
+如果这么求的话，没有左孩子的分支会算为最短深度。
+
+所以，如果左子树为空，右子树不为空，说明最小深度是 1 + 右子树的深度。
+
+反之，右子树为空，左子树不为空，最小深度是 1 + 左子树的深度。 最后如果左右子树都不为空，返回左右子树深度最小值 + 1 。
+
+正确的单层递归逻辑：
+
+```c++
+int leftDepth = getDepth(node->left);           // 左
+int rightDepth = getDepth(node->right);         // 右
+                                                // 中
+// 当一个左子树为空，右不为空，这时并不是最低点
+if (node->left == NULL && node->right != NULL) { 
+    return 1 + rightDepth;
+}   
+// 当一个右子树为空，左不为空，这时并不是最低点
+if (node->left != NULL && node->right == NULL) { 
+    return 1 + leftDepth;
+}
+int result = 1 + min(leftDepth, rightDepth);
+return result;
+```
+
+**完整代码：**
+
+```c++
+class Solution {
+public:
+    int getDepth(TreeNode* node) {
+        if (node == NULL) return 0;
+        int leftDepth = getDepth(node->left);           // 左
+        int rightDepth = getDepth(node->right);         // 右
+                                                        // 中
+        // 当一个左子树为空，右不为空，这时并不是最低点
+        if (node->left == NULL && node->right != NULL) { 
+            return 1 + rightDepth;
+        }   
+        // 当一个右子树为空，左不为空，这时并不是最低点
+        if (node->left != NULL && node->right == NULL) { 
+            return 1 + leftDepth;
+        }
+        // 左右都空或都非空
+        int result = 1 + min(leftDepth, rightDepth);
+        return result;
+    }
+
+    int minDepth(TreeNode* root) {
+        return getDepth(root);
+    }
+};
+```
+
+**1.2迭代(层序遍历)**
+
+**只有当左右孩子都为空的时候，才说明遍历的最低点了。如果其中一个孩子为空则不是最低点(即第一次出现的叶子节点)**
+
+```c++
+class Solution {
+public:
+
+    int minDepth(TreeNode* root) {
+        if (root == NULL) return 0;
+        int depth = 0;
+        queue<TreeNode*> que;
+        que.push(root);
+        while(!que.empty()) {
+            int size = que.size();
+            depth++; // 记录最小深度
+            for (int i = 0; i < size; i++) {
+                TreeNode* node = que.front();
+                que.pop();
+                if (node->left) que.push(node->left);
+                if (node->right) que.push(node->right);
+                if (!node->left && !node->right) { // 当左右孩子都为空的时候，说明是最低点的一层了，退出
+                    return depth;
+                }
+            }
+        }
+        return depth;
+    }
+};
+```
+
+### 六、完全二叉树的节点个数
+
+**1.递归**
+
+```c++
+//递归O(n)
+class Solution {
+public:
+    int getCount(TreeNode* node) {
+        if(!node) return 0;
+        int leftNum = getCount(node->left); //左
+        int rightNum = getCount(node->right); //右
+        int num = leftNum + rightNum + 1; //中
+        return num;
+    }
+    int countNodes(TreeNode* root) {
+        return getCount(root);
+    }
+};
+```
+
+**2.迭代**
+
+```c++
+//层序遍历O(n)
+class Solution {
+public:
+    int countNodes(TreeNode* root) {
+        TreeNode* node;
+        queue<TreeNode*> q;
+        int num = 0;
+        if(!root) return 0;
+        q.push(root);
+        while(!q.empty()) {
+            int size = q.size();
+            num += size;
+            for(int i = 0; i < size; i++) {
+                node = q.front(); q.pop();
+                if(node->left) q.push(node->left);
+                if(node->right) q.push(node->right);
+            }
+        }
+        return num;
+    }
+};
+```
+
+**3.完全二叉树的性质**
+
+以上方法都是按照普通二叉树来做的，在完全二叉树中，除了最底层节点可能没填满外，其余每层节点数都达到最大值，并且最下面一层的节点都集中在该层最左边的若干位置。若最底层为第 h 层，则该层包含 1~ 2^(h-1)  个节点。
+
+举一个典型的例子如题：
+
+<img src="https://img-blog.csdnimg.cn/20200920221638903.png" alt="img" style="zoom:33%;" />
+
+完全二叉树只有两种情况，情况一：就是满二叉树，情况二：最后一层叶子节点没有满。
+
+对于情况一，可以直接用 2^h - 1 来计算，注意这里根节点深度为1。
+
+对于情况二，分别递归左孩子，和右孩子，递归到某一深度一定会有左孩子或者右孩子为满二叉树，然后依然可以按照情况1来计算。
+
+完全二叉树（一）如图：
+
+​												 <img src="https://img-blog.csdnimg.cn/20201124092543662.png" alt="222.完全二叉树的节点个数" style="zoom:50%;" />	
+
+完全二叉树（二）如图：
+
+​												 <img src="https://img-blog.csdnimg.cn/20201124092634138.png" alt="222.完全二叉树的节点个数1" style="zoom: 50%;" />
+
+可以看出如果整个树不是满二叉树，就递归其左右孩子，直到遇到满二叉树为止，用公式计算这个子树（满二叉树）的节点数量。
+
+这里关键在于如果去判断一个左子树或者右子树是不是满二叉树呢？
+
+在完全二叉树中，如果递归向左遍历的深度等于递归向右遍历的深度，那说明就是满二叉树。如图：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220829163554.png" alt="img" style="zoom:50%;" />
+
+在完全二叉树中，如果递归向左遍历的深度不等于递归向右遍历的深度，则说明不是满二叉树，如图：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220829163709.png" alt="img" style="zoom:50%;" />
+
+那录友说了，这种情况，递归向左遍历的深度等于递归向右遍历的深度，但也不是满二叉树，如题：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220829163811.png" alt="img" style="zoom:50%;" />
+
+如果这么想，大家就是对 完全二叉树理解有误区了，**以上这棵二叉树，它根本就不是一个完全二叉树**！
+
+判断其子树岂不是满二叉树，如果是则利用用公式计算这个子树（满二叉树）的节点数量，如果不是则继续递归，那么 在递归三部曲中，第二部：终止条件的写法应该是这样的：
+
+```cpp
+if (root == nullptr) return 0; 
+// 开始根据做深度和有深度是否相同来判断该子树是不是满二叉树
+TreeNode* left = root->left;
+TreeNode* right = root->right;
+int leftDepth = 0, rightDepth = 0; // 这里初始为0是有目的的，为了下面求指数方便
+while (left) {  // 求左子树深度
+    left = left->left;
+    leftDepth++;
+}
+while (right) { // 求右子树深度
+    right = right->right;
+    rightDepth++;
+}
+if (leftDepth == rightDepth) {
+    return (2 << leftDepth) - 1; // 注意(2<<1) 相当于2^2，返回满足满二叉树的子树节点数量
+}
+```
+
+递归三部曲，第三部，单层递归的逻辑：（可以看出使用后序遍历）
+
+```cpp
+int leftTreeNum = countNodes(root->left);       // 左
+int rightTreeNum = countNodes(root->right);     // 右
+int result = leftTreeNum + rightTreeNum + 1;    // 中
+return result;
+```
+
+该部分精简之后代码为：
+
+```cpp
+return countNodes(root->left) + countNodes(root->right) + 1; 
+```
+
+最后整体C++代码如下：
+
+```cpp
+class Solution {
+public:
+    int countNodes(TreeNode* root) {
+        if (root == nullptr) return 0;
+        TreeNode* left = root->left;
+        TreeNode* right = root->right;
+        int leftDepth = 0, rightDepth = 0; // 这里初始为0是有目的的，为了下面求指数方便
+        while (left) {  // 求左子树深度
+            left = left->left;
+            leftDepth++;
+        }
+        while (right) { // 求右子树深度
+            right = right->right;
+            rightDepth++;
+        }
+        //满二叉树
+        if (leftDepth == rightDepth) {
+            return (2 << leftDepth) - 1; // 注意(2<<1) 相当于2^2，所以leftDepth初始为0
+        }
+        //不是满二叉树
+        int leftTreeNum = countNodes(root->left);       // 左
+		int rightTreeNum = countNodes(root->right);     // 右
+		int result = leftTreeNum + rightTreeNum + 1;    // 中
+		return result;
+    }
+};
+```
+
+- 时间复杂度：O(log n × log n)
+- 空间复杂度：O(log n)
 
 
 
