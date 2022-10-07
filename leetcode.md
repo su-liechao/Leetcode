@@ -657,7 +657,7 @@ public:
 
 ### 六、完全二叉树的节点个数
 
-**1.递归**
+#### **1.递归**
 
 ```c++
 //递归O(n)
@@ -676,7 +676,7 @@ public:
 };
 ```
 
-**2.迭代**
+#### **2.迭代**
 
 ```c++
 //层序遍历O(n)
@@ -702,7 +702,7 @@ public:
 };
 ```
 
-**3.完全二叉树的性质**
+#### 3.**完全二叉树的性质**
 
 以上方法都是按照普通二叉树来做的，在完全二叉树中，除了最底层节点可能没填满外，其余每层节点数都达到最大值，并且最下面一层的节点都集中在该层最左边的若干位置。若最底层为第 h 层，则该层包含 1~ 2^(h-1)  个节点。
 
@@ -811,6 +811,152 @@ public:
 
 - 时间复杂度：O(log n × log n)
 - 空间复杂度：O(log n)
+
+### 七、平衡二叉树
+
+[leetcode题目链接]([110. 平衡二叉树 - 力扣（LeetCode）](https://leetcode.cn/problems/balanced-binary-tree/))
+
+给定一个二叉树，判断它是否是高度平衡的二叉树。
+
+本题中，一棵高度平衡二叉树定义为：一个二叉树每个节点 的左右两个子树的高度差的绝对值不超过1。
+
+示例 1:
+
+给定二叉树 [3,9,20,null,null,15,7]
+
+<img src="https://img-blog.csdnimg.cn/2021020315542230.png" alt="110.平衡二叉树" style="zoom:50%;" />
+
+返回true
+
+示例2：
+
+给定二叉树 [1,2,2,3,3,null,null,4,4]
+
+<img src="https://img-blog.csdnimg.cn/20210203155447919.png" alt="110.平衡二叉树1" style="zoom:50%;" />
+
+返回 false 。
+
+#### 1.自底向上的递归
+
+**自底向上递归的做法类似于后序遍历**，对于当前遍历到的节点，先递归地判断其左右子树是否平衡，再判断以当前节点为根的子树是否平衡。如果一棵子树是平衡的，则返回其高度（高度一定是非负整数），否则返回-1。如果存在一棵子树不平衡，则整个二叉树一定不平衡。[自底向上的递归动图](https://leetcode.cn/problems/balanced-binary-tree/solution/ping-heng-er-cha-shu-by-leetcode-solution/)。
+
+递归三步曲分析：
+
+​	1.明确递归函数的参数和返回值
+
+参数：当前传入节点。
+返回值：以当前传入节点为根节点的树的高度。
+
+那么如何标记左右子树是否差值大于1呢？
+
+如果当前传入节点为根节点的二叉树已经不是二叉平衡树了，还返回高度的话就没有意义了。
+
+所以如果已经不是二叉平衡树了，可以返回-1 来标记已经不符合平衡树的规则了。
+
+代码如下：
+
+```cpp
+// -1 表示已经不是平衡二叉树了，否则返回值是以该节点为根节点树的高度
+int height(TreeNode* node)
+```
+
+​	2.明确终止条件
+
+递归的过程中依然是遇到空节点了为终止，返回0，表示当前节点为根节点的树高度为0
+
+代码如下：
+
+```cpp
+if(node == nullptr) {
+	return 0;
+}
+```
+
+​	3.明确单层递归的逻辑
+
+如何判断以当前传入节点为根节点的二叉树是否是平衡二叉树呢？当然是其左子树高度和其右子树高度的差值。
+
+分别求出其左右子树的高度，然后如果差值小于等于1，则返回当前二叉树的高度，否则则返回-1，表示已经不是二叉平衡树了。
+
+代码如下：
+
+```c++
+int left_height = height(node->left); //左
+int right_height = height(node->right); //右
+if(left_height == -1 || right_height == -1 || abs(left_height - right_height) > 1) {//中
+	return -1;
+} else {
+	return max(left_height, right_height) + 1; //如果一棵子树是平衡的，则返回其高度
+}
+```
+
+​	完整代码：
+
+```c++
+class Solution {
+public:
+    bool isBalanced(TreeNode* root) {
+        return height(root) >= 0;
+    }
+private:
+    int height(TreeNode* node) {//1.明确递归函数的参数和返回值
+        if(node == nullptr) { //2.明确终止条件
+            return 0;
+        }
+        //3.明确单层递归的逻辑(后序遍历)
+        int left_height = height(node->left); //左
+        int right_height = height(node->right); //右
+        if(left_height == -1 || right_height == -1 || abs(left_height - right_height) > 1) {    //中
+            return -1;
+        } else {
+            return max(left_height, right_height) + 1; //如果一棵子树是平衡的，则返回其高度
+        }
+    }
+};
+```
+
+**总结**：求深度适合用前序遍历，而求高度适合用后序遍历。
+
+### 八、二叉树的所有路径
+
+#### **1.深度优先搜索**
+
+思路与算法：
+
+最直观的方法是使用深度优先搜索。在深度优先搜索遍历二叉树时，我们需要考虑当前的节点以及它的孩子节点。
+
+- 如果当前节点不是叶子节点，则在当前的路径末尾添加该节点，并继续递归遍历该节点的每一个孩子节点。
+
+- 如果当前节点是叶子节点，则在当前路径末尾添加该节点后我们就得到了一条从根节点到叶子节点的路径，将该路径加入到答案即可。
+
+如此，当遍历完整棵二叉树以后我们就得到了所有从根节点到叶子节点的路径。
+
+代码如下：
+
+```c++
+//DFS(前序遍历)
+class Solution {
+public:
+    vector<string> binaryTreePaths(TreeNode* root) {
+        vector<string> ret;
+        getPath(root, "", ret);
+        return ret;
+    }
+private:
+    void getPath(TreeNode* node, string path, vector<string>& paths) {
+        if(node != nullptr) {
+            path += to_string(node->val);
+            if(node->left == nullptr && node->right == nullptr) { //左右节点皆为空时，到达了叶子节点
+                paths.push_back(path);
+            } else {
+                path += "->";
+                getPath(node->left, path, paths);
+                getPath(node->right, path, paths);
+            }
+        }
+    }
+};
+```
 
 
 
