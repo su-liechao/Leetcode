@@ -958,6 +958,175 @@ private:
 };
 ```
 
+### 九、左叶子之和
+
+[力扣题目链接](https://leetcode.cn/problems/sum-of-left-leaves/)
+
+计算给定二叉树的所有左叶子之和。
+
+示例：
+
+<img src="https://img-blog.csdnimg.cn/20210204151927654.png" alt="404.左叶子之和1" style="zoom:50%;" />
+
+**判断当前节点是不是左叶子是无法判断的，必须要通过节点的父节点来判断其左孩子是不是左叶子。**
+
+如果该节点的左节点不为空，该节点的左节点的左节点为空，该节点的左节点的右节点为空，则找到了一个左叶子，判断代码如下：
+
+```c++
+if (node->left != NULL && node->left->left == NULL && node->left->right == NULL) {
+    左叶子节点处理逻辑
+}
+```
+
+**1.递归**
+
+递归的遍历顺序为后序遍历（左右中），是因为要通过递归函数的返回值来累加求取左叶子数值之和。
+
+递归三部曲：
+
+​	1.确定递归函数的参数和返回值
+
+判断一个树的左叶子节点之和，那么一定要传入树的根节点，递归函数的返回值为数值之和，所以为int。使用题目中给出的函数就可以了。
+
+```c++
+int sumOfLeftLeaves(TreeNode* root)
+```
+
+​	2.确定终止条件
+
+如果遍历到空节点，那么左叶子值一定是0
+
+```cpp
+if (root == nullptr) return 0;
+```
+
+​	3.确定单层递归的逻辑
+
+当遇到左叶子节点的时候，记录数值，然后通过递归求取左子树左叶子之和与右子树左叶子之和，相加便是整个树的左叶子之和。
+
+代码如下：
+
+```c++
+// 当前节点的左子树是一个左叶子的情况
+if(root->left != nullptr && root->left->left == nullptr && root->left->right == nullptr) {
+	return root->left->val + sumOfLeftLeaves(root->right);
+} else {
+	return sumOfLeftLeaves(root->left) + sumOfLeftLeaves(root->right);
+}
+```
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    int sumOfLeftLeaves(TreeNode* root) {
+        // 左叶子节点，因此只有root->left才可以判断是否是叶子节点
+        if(root == nullptr){
+            return 0;
+        }
+        // 当前节点的左子树是一个左叶子的情况
+        if(root->left != nullptr && root->left->left == nullptr && root->left->right == nullptr) {
+            return root->left->val + sumOfLeftLeaves(root->right);
+        } else {
+            return sumOfLeftLeaves(root->left) + sumOfLeftLeaves(root->right);
+        }
+    }
+};
+```
+
+2.**迭代**
+
+```c++
+//迭代
+class Solution {
+public:
+    int sumOfLeftLeaves(TreeNode* root) {
+        if(root == nullptr){
+            return 0;
+        }
+        int sum = 0;
+        TreeNode* node;
+        stack<TreeNode*> stk;
+        stk.push(root);
+        while(!stk.empty()) {
+            node = stk.top(); stk.pop();
+            if(node->left != nullptr && node->left->left == nullptr && node->left->right == nullptr) {
+                sum += node->left->val;
+            }
+            if(node->left) stk.push(node->left);
+            if(node->right) stk.push(node->right);
+        }
+        return sum;
+    }
+};
+```
+
+### 十、找树左下角的值
+
+[力扣题目链接(opens new window)](https://leetcode.cn/problems/find-bottom-left-tree-value/)
+
+给定一个二叉树，在树的最后一行找到最左边的值。
+
+示例 :
+
+<img src="https://img-blog.csdnimg.cn/20210204153017586.png" alt="513.找树左下角的值1" style="zoom:50%;" />
+
+
+
+#### **1.广度优先搜索(层序遍历)**
+
+​	只需要记录最后一行第一个节点的数值就可以了。
+
+```c++
+class Solution {
+public:
+    int findBottomLeftValue(TreeNode* root) {
+        if(root == nullptr) return 0;
+        int ret = 0;
+        TreeNode* node;
+        queue<TreeNode*> q;
+        q.push(root);
+        while(!q.empty()) {
+            int size = q.size();
+            for(int i = 0; i < size; i++) {
+                node = q.front(); q.pop();
+                if(i == 0) ret = node->val; // 记录最后一行第一个元素
+                if(node->left) q.push(node->left);
+                if(node->right) q.push(node->right);
+            }
+        }
+        return ret;
+    }
+};
+```
+
+​	**层序遍历优化版**
+
+​	使用广度优先搜索遍历每一层的节点。在遍历一个节点时，**需要先把它的非空右子节点放入队列，然后再把它的非空左子节点放入队列**，这样才能保证从右到左遍历每一层的节点。广度优先搜索所遍历的最后一个节点的值就是最底层最左边节点的值。
+
+```c++
+class Solution {
+public:
+    int findBottomLeftValue(TreeNode* root) {
+        if(root == nullptr) return 0;
+        int ret = 0;
+        TreeNode* node;
+        queue<TreeNode*> q;
+        q.push(root);
+        while(!q.empty()) {
+            node = q.front(); q.pop();
+            if(node->right) q.push(node->right);
+            if(node->left) q.push(node->left);
+            ret = node->val; // 记录最后一行第一个元素
+        }
+        return ret;
+    }
+};
+```
+
+#### 2.递归
+
 
 
 ### 二叉树总结
