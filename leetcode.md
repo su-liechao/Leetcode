@@ -1064,7 +1064,7 @@ public:
 
 ### 十、找树左下角的值
 
-[力扣题目链接(opens new window)](https://leetcode.cn/problems/find-bottom-left-tree-value/)
+[力扣题目链接](https://leetcode.cn/problems/find-bottom-left-tree-value/)
 
 给定一个二叉树，在树的最后一行找到最左边的值。
 
@@ -1126,6 +1126,170 @@ public:
 ```
 
 #### 2.递归
+
+```c++
+class Solution {//TODO
+public:
+    void dfs(TreeNode *root, int height, int &curVal, int &curHeight) {
+        if (root == nullptr) {
+            return;
+        }
+        height++;
+        dfs(root->left, height, curVal, curHeight);
+        dfs(root->right, height, curVal, curHeight);
+        if (height > curHeight) {
+            curHeight = height;
+            curVal = root->val;
+        }
+    }
+
+    int findBottomLeftValue(TreeNode* root) {
+        int curVal, curHeight = 0;
+        dfs(root, 0, curVal, curHeight);
+        return curVal;
+    }
+};
+```
+
+
+
+### 十一、路径总和
+
+[力扣题目链接](https://leetcode.cn/problems/path-sum/)
+
+给定一个二叉树和一个目标和，判断该树中是否存在根节点到叶子节点的路径，这条路径上所有节点值相加等于目标和。
+
+说明: 叶子节点是指没有子节点的节点。
+
+示例: 给定如下二叉树，以及目标和 sum = 22
+
+<img src="https://img-blog.csdnimg.cn/20210203160355234.png" alt="112.路径总和1" style="zoom:50%;" />
+
+返回 true, 因为存在目标和为 22 的根节点到叶子节点的路径 5->4->11->2。
+
+#### 1.递归
+
+可以使用深度优先遍历的方式来遍历二叉树
+
+思路：观察要求我们完成的函数，可以归纳出它的功能：询问是否存在从当前节点 root 到叶子节点的路径，满足其路径和为 sum。
+
+假定从根节点到当前节点的值之和为 val，我们可以将这个问题转化为：是否存在从当前节点的子节点到叶子的路径，满足其路径和为 sum - val。
+
+不难发现这满足递归的性质，**若当前节点就是叶子节点，那么我们直接判断 sum 是否等于 val 即可**（因为路径和已经确定，就是当前节点的值，我们只需要判断该路径和是否满足条件）。若当前节点不是叶子节点，我们只需要递归地询问它的子节点是否能满足条件即可。
+
+```c++
+class Solution {
+public:
+    bool hasPathSum(TreeNode* root, int targetSum) {
+        if(root == nullptr) {
+            return false;
+        }
+        //当前节点就是叶子节点，那么我们直接判断 sum 是否等于 val 即可
+        if(root->left == nullptr && root->right == nullptr) {
+            return targetSum == root->val;
+        }
+        return hasPathSum(root->left, targetSum - root->val) || hasPathSum(root->right, targetSum - root->val);
+    }
+};
+```
+
+#### **2.BFS**
+
+题解思路：[路径总和思路](https://leetcode.cn/problems/path-sum/solution/lu-jing-zong-he-by-leetcode-solution/)
+
+代码：
+
+```c++
+//BFS
+class Solution {
+public:
+    bool hasPathSum(TreeNode* root, int targetSum) {
+        if(root == nullptr) {
+            return false;
+        }
+        TreeNode* node;
+        int temp = 0;
+        queue<TreeNode*> q_node;
+        queue<int> q_value;
+        q_node.push(root); q_value.push(root->val);
+        while(!q_node.empty()) {
+            node = q_node.front();
+            q_node.pop();
+            temp = q_value.front();
+            q_value.pop();
+            if(node->left == nullptr && node->right == nullptr && temp == targetSum) {
+                return true;
+            }
+            else {
+                if(node->left) {
+                    q_node.push(node->left);
+                    q_value.push(temp + node->left->val);//注意：这里不是加node->val而是node->left->val
+                }
+                if(node->right) {
+                    q_node.push(node->right);
+                    q_value.push(temp + node->right->val);
+                }
+            }
+        }
+        return false;
+    }
+};
+```
+
+#### 路径总和ii
+
+[力扣题目链接](https://leetcode.cn/problems/path-sum-ii/)
+
+给定一个二叉树和一个目标和，找到**所有从根节点到叶子节点路径总和等于给定目标和的路径**。
+
+说明: 叶子节点是指没有子节点的节点。
+
+示例: 给定如下二叉树，以及目标和 sum = 22
+
+<img src="https://img-blog.csdnimg.cn/20210203160854654.png" alt="113.路径总和ii1.png" style="zoom: 50%;" />
+
+#### 1.递归
+
+思路：113.路径总和ii要遍历整个树，找到所有路径，**所以递归函数不要返回值！**
+
+如图：
+
+<img src="https://img-blog.csdnimg.cn/20210203160922745.png" alt="113.路径总和ii" style="zoom:50%;" />
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> ret;
+    vector<int> path;
+    vector<vector<int>> pathSum(TreeNode* root, int targetSum) { 
+        dfs(root, targetSum);
+        return ret;
+    }
+private:
+    void dfs(TreeNode* node, int targetSum) {
+        if(node == nullptr) {
+            return;
+        }
+        path.push_back(node->val);
+        targetSum -= node->val;
+        if(node->left == nullptr && node->right == nullptr && targetSum == 0) {
+            ret.push_back(path);
+        }
+        dfs(node->left, targetSum);
+        dfs(node->right, targetSum);
+        //当递归到叶子节点,但不满足targetSum == 0时,需回溯。把path.push_back(node->val)这一步的节点弹出
+        path.pop_back();
+    }
+};
+```
+
+**总结**：递归函数什么时候需要返回值？什么时候不需要返回值？这里总结如下三点：
+
+- 如果需要**搜索整棵二叉树且不用处理递归返回值**，递归函数就不要返回值。（113.路径总和ii）
+- 如果需要搜索整棵二叉树且需要处理递归返回值，递归函数就需要返回值。（这种情况我们在[236. 二叉树的最近公共祖先](https://programmercarl.com/0236.二叉树的最近公共祖先.html)中介绍）
+- 如果要**搜索其中一条符合条件的路径**，那么递归一定需要返回值，因为遇到符合条件的路径了就要及时返回。（112.路径总和）
+
+
 
 
 
