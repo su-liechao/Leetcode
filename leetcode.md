@@ -1289,7 +1289,142 @@ private:
 - 如果需要搜索整棵二叉树且需要处理递归返回值，递归函数就需要返回值。（这种情况我们在[236. 二叉树的最近公共祖先](https://programmercarl.com/0236.二叉树的最近公共祖先.html)中介绍）
 - 如果要**搜索其中一条符合条件的路径**，那么递归一定需要返回值，因为遇到符合条件的路径了就要及时返回。（112.路径总和）
 
+### 十二、1.从中序与后序遍历序列构造二叉树
 
+[力扣题目链接](https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
+
+根据一棵树的中序遍历与后序遍历构造二叉树。
+
+注意: 你可以假设树中没有重复的元素。
+
+例如，给出中序遍历 inorder = [9,3,15,20,7] 后序遍历 postorder = [9,15,7,20,3] 返回如下的二叉树：
+
+<img src="https://img-blog.csdnimg.cn/20210203154316774.png" alt="106. 从中序与后序遍历序列构造二叉树1" style="zoom:50%;" />
+
+首先解决这道题我们需要明确给定一棵二叉树，我们是如何对其进行中序遍历与后序遍历的：
+
+中序遍历的顺序是每次遍历左孩子，再遍历根节点，最后遍历右孩子。
+后序遍历的顺序是每次遍历左孩子，再遍历右孩子，最后遍历根节点。
+写成代码的形式即：
+
+```c++
+// 中序遍历
+void inorder(TreeNode* root) {
+    if (root == nullptr) {
+        return;
+    }
+    inorder(root->left);
+    ans.push_back(root->val);
+    inorder(root->right);
+}
+// 后序遍历
+void postorder(TreeNode* root) {
+    if (root == nullptr) {
+        return;
+    }
+    postorder(root->left);
+    postorder(root->right);
+    ans.push_back(root->val);
+}
+```
+
+​	因此根据上文所述，我们可以发现**后序遍历的数组最后一个元素代表的即为根节点**。知道这个性质后，我们可以**利用已知的根节点信息在中序遍历的数组中找到根节点所在的下标，然后根据其将中序遍历的数组分成左右两部分，左边部分即左子树，右边部分为右子树**，针对每个部分可以用同样的方法继续递归下去构造。
+
+流程如图：
+
+<img src="https://img-blog.csdnimg.cn/20210203154249860.png" alt="106.从中序与后序遍历序列构造二叉树" style="zoom:33%;" />
+
+**算法**
+
+- 为了高效查找根节点元素在中序遍历数组中的下标，我们选择创建哈希表来存储中序序列，即建立一个（元素，下标）键值对的哈希表。
+
+
+- 定义递归函数 helper(in_left, in_right) 表示当前递归到中序序列中当前子树的左右边界，递归入口为helper(0, n - 1) ：
+
+
+​		如果 in_left > in_right，说明子树为空，返回空节点。
+
+​		选择后序遍历的最后一个节点作为根节点。
+
+​		利用哈希表 O(1)O(1) 查询当根节点在中序遍历中下标为 index。从 in_left 到 index - 1 属于左子树，从 index + 1 到 in_right 属于右子树。
+
+​		根据后序遍历逻辑，递归创建右子树 helper(index + 1, in_right) 和左子树 helper(in_left, index - 1)。注意这里有需要先创建右子树，再创建左子树的依赖关系。可以理解为在后序遍历的数组中整个数组是先存储左子树的节点，再存储右子树的节点，最后存储根节点，如果按每次选择「后序遍历的最后一个节点」为根节点，则先被构造出来的应该为右子树。
+
+​	返回根节点 root。
+
+完整测试代码如下：
+
+```c++
+#include<unordered_map>
+#include<vector>
+using namespace std;
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+};
+
+class Solution {
+    int post_idx;
+    unordered_map<int, int> idx_map;
+public:
+    TreeNode* helper(int in_left, int in_right, vector<int>& inorder, vector<int>& postorder){
+        // 如果这里没有节点构造二叉树了，就结束
+        if (in_left > in_right) {
+            return nullptr;
+        }
+
+        // 选择 post_idx 位置的元素作为当前子树根节点
+        int root_val = postorder[post_idx];
+        TreeNode* root = new TreeNode(root_val);
+
+        // 根据 root 所在位置分成左右两棵子树
+        int index = idx_map[root_val];
+
+        // 下标减一
+        post_idx--;
+        // 构造右子树
+        root->right = helper(index + 1, in_right, inorder, postorder);
+        // 构造左子树
+        root->left = helper(in_left, index - 1, inorder, postorder);
+        return root;
+    }
+    TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder) {
+        // 从后序遍历的最后一个元素开始
+        post_idx = (int)postorder.size() - 1;
+
+        // 建立（元素，下标）键值对的哈希表
+        int idx = 0;
+        for (auto& val : inorder) {
+            idx_map[val] = idx++;
+        }
+        return helper(0, (int)inorder.size() - 1, inorder, postorder);
+    }
+};
+
+int main() {
+    Solution s;
+    vector<int> inorder = {9,3,15,20,7};
+    vector<int> postorder = {9,15,7,20,3};
+    TreeNode* ret = s.buildTree(inorder, postorder);
+    return 0;
+}
+```
+
+#### 2.从前序与中序遍历序列构造二叉树
+
+[力扣题目链接](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+
+根据一棵树的前序遍历与中序遍历构造二叉树。
+
+注意: 你可以假设树中没有重复的元素。
+
+例如，给出前序遍历 preorder = [3,9,20,15,7] 中序遍历 inorder = [9,3,15,20,7] 返回如下的二叉树：
+
+<img src="https://img-blog.csdnimg.cn/20210203154626672.png" alt="105. 从前序与中序遍历序列构造二叉树" style="zoom: 50%;" />
 
 
 
