@@ -1414,6 +1414,8 @@ int main() {
 }
 ```
 
+**注意：从中序与后序遍历序列构造二叉树：先构造右子树，再构造左子树**
+
 #### 2.从前序与中序遍历序列构造二叉树
 
 [力扣题目链接](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
@@ -1425,6 +1427,84 @@ int main() {
 例如，给出前序遍历 preorder = [3,9,20,15,7] 中序遍历 inorder = [9,3,15,20,7] 返回如下的二叉树：
 
 <img src="https://img-blog.csdnimg.cn/20210203154626672.png" alt="105. 从前序与中序遍历序列构造二叉树" style="zoom: 50%;" />
+
+**注意区别：从前序与中序遍历序列构造二叉树：先构造左子树，再构造右子树**
+
+和上一题的区别：
+
+```c++
+pre_idx = 0;
+......
+// 下标加一
+pre_idx++;
+// 构造左子树
+root->left = helper(in_left, index - 1, preorder, inorder);
+// 构造右子树
+root->right = helper(index + 1, in_right, preorder, inorder);
+```
+
+
+
+```c++
+#include<unordered_map>
+#include<vector>
+using namespace std;
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+};
+//从前序与中序遍历序列构造二叉树
+class Solution {
+    int pre_idx;
+    unordered_map<int, int> idx_map;
+public:
+    TreeNode* helper(int in_left, int in_right, vector<int>& preorder, vector<int>& inorder) {
+        // 如果这里没有节点构造二叉树了，就结束
+        if (in_left > in_right) {
+            return nullptr;
+        }
+        // 选择 pre_idx 位置的元素作为当前子树根节点
+        int root_val = preorder[pre_idx];
+        TreeNode* root = new TreeNode(root_val);
+
+        // 根据 root 所在位置,将中序遍历的数组分成左右两棵子树
+        int index = idx_map[root_val];
+
+        // 下标加一
+        pre_idx++;
+        // 构造左子树
+        root->left = helper(in_left, index - 1, preorder, inorder);
+        // 构造右子树
+        root->right = helper(index + 1, in_right, preorder, inorder);
+        return root;
+    }
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+        // 前序遍历index
+        pre_idx = 0;
+
+        // 建立中序遍历（元素，下标）键值对的哈希表
+        int idx = 0;
+        for (auto& val : inorder) {
+            idx_map[val] = idx++;
+        }
+        return helper(0, (int)inorder.size() - 1, preorder, inorder);
+    }
+};
+
+int main() {
+    Solution s;
+    vector<int> preorder = {3, 9, 20, 15, 7};
+    vector<int> inorder = {9, 3, 15, 20, 7};
+    TreeNode* ret = s.buildTree(preorder, inorder);
+    return 0;
+}
+```
+
+
 
 
 
