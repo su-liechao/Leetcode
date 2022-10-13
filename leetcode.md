@@ -1504,7 +1504,111 @@ int main() {
 }
 ```
 
+### 十三、最大二叉树
 
+[力扣题目地址](https://leetcode.cn/problems/maximum-binary-tree/)
+
+**这道题完全可以参考上一题的思路**
+
+给定一个不含重复元素的整数数组。一个以此数组构建的最大二叉树定义如下：
+
+- 二叉树的根是数组中的最大元素。
+- 左子树是通过数组中最大值左边部分构造出的最大二叉树。
+- 右子树是通过数组中最大值右边部分构造出的最大二叉树。
+
+通过给定的数组构建最大二叉树，并且输出这个树的根节点。
+
+示例 ：
+
+<img src="https://img-blog.csdnimg.cn/20210204154534796.png" alt="654.最大二叉树" style="zoom: 50%;" />
+
+提示：
+
+给定的数组的大小在 [1, 1000] 之间。
+
+#### 1.DFS
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    TreeNode* constructMaximumBinaryTree(vector<int>& nums) {
+        return build(0, nums.size() - 1, nums);
+    }
+private:
+    TreeNode* build(int left, int right, vector<int>& nums) {
+        if(left > right) 
+            return nullptr;
+        //找出子数组的最大值下标
+        int max_index = left;
+        for( int i = left + 1; i <= right; i++) {
+            if(nums[i] > nums[max_index])
+                max_index = i;
+        }
+        //构建节点
+        int max_val = nums[max_index];
+        TreeNode* root = new TreeNode(max_val);
+        //递归构建节点的左右子树
+        root->left = build(left, max_index - 1, nums);
+        root->right = build(max_index + 1, right, nums);
+        return root;
+    }
+};
+```
+
+### 十四、合并二叉树
+
+[力扣题目链接](https://leetcode.cn/problems/merge-two-binary-trees/)
+
+给定两个二叉树，想象当你将它们中的一个覆盖到另一个上时，两个二叉树的一些节点便会重叠。
+
+你需要将他们合并为一个新的二叉树。合并的规则是如果两个节点重叠，那么将他们的值相加作为节点合并后的新值，否则不为 NULL 的节点将直接作为新二叉树的节点。
+
+示例 1:
+
+<img src="https://img-blog.csdnimg.cn/20210204153634809.png" alt="617.合并二叉树" style="zoom:50%;" />
+
+注意: 合并必须从两个树的根节点开始。
+
+**思路**：其实和遍历一个树逻辑是一样的，只不过传入两个树的节点，同时操作。**(三种遍历顺序都可采用)**
+
+```c++
+//前序遍历两棵树
+class Solution {
+public:
+    int val;
+    TreeNode* mergeTrees(TreeNode* root1, TreeNode* root2) {
+        return dfs(root1, root2);
+    }
+private:
+    TreeNode* dfs(TreeNode* node1, TreeNode* node2) {
+        if(node2 == nullptr)   return node1;
+        else if(node1 == nullptr)   return node2;
+        TreeNode* root = new TreeNode(node1->val + node2->val);
+        root->left = dfs(node1->left, node2->left);
+        root->right = dfs(node1->right, node2->right);
+        return root;
+    }
+};
+
+//前序遍历；在其中一棵树的基础上做修改
+class Solution {
+public:
+    TreeNode* mergeTrees(TreeNode* root1, TreeNode* root2) {
+        return dfs(root1, root2);
+    }
+private:
+    TreeNode* dfs(TreeNode* node1, TreeNode* node2) {
+        if(node2 == nullptr)   return node1;
+        else if(node1 == nullptr)   return node2;
+        node1->val += node2->val; //改变tree1
+        node1->left = dfs(node1->left, node2->left);
+        node1->right = dfs(node1->right, node2->right);
+        return node1;
+    }
+};
+```
 
 
 
