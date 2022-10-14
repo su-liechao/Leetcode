@@ -8,12 +8,60 @@
 
 #### 1.二叉树的种类
 
-[二叉树种类](https://www.programmercarl.com/%E4%BA%8C%E5%8F%89%E6%A0%91%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80.html#%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E7%A7%8D%E7%B1%BB)
-
 1. 满二叉树
 2. 二叉搜索树
 3. 平衡二叉树
 4. 平衡二叉搜索树
+
+
+
+**满二叉树**
+
+满二叉树：如果一棵二叉树只有度为0的结点和度为2的结点，并且度为0的结点在同一层上，则这棵二叉树为满二叉树。
+
+如图所示：
+
+<img src="https://img-blog.csdnimg.cn/20200806185805576.png" alt="img" style="zoom: 33%;" />
+
+这棵二叉树为满二叉树，也可以说深度为k，有2^k-1个节点的二叉树。
+
+**完全二叉树**
+
+完全二叉树的定义如下：在完全二叉树中，除了最底层节点可能没填满外，其余每层节点数都达到最大值，并且最下面一层的节点都集中在该层最左边的若干位置。若最底层为第 h 层，则该层包含 1~ 2^(h-1)  个节点。
+
+**大家要自己看完全二叉树的定义，很多同学对完全二叉树其实不是真正的懂了。**
+
+我来举一个典型的例子如题：
+
+<img src="https://img-blog.csdnimg.cn/20200920221638903.png" alt="img" style="zoom:50%;" />
+
+相信不少同学最后一个二叉树是不是完全二叉树都中招了。
+
+**之前我们刚刚讲过优先级队列其实是一个堆，堆就是一棵完全二叉树，同时保证父子节点的顺序关系。**
+
+**二叉搜索树**（二叉排序树）
+
+前面介绍的树，都没有数值的，而二叉搜索树是有数值的了，**二叉搜索树是一个有序树**。
+
+- 若它的左子树不空，则**左子树上所有结点的值均小于它的根结点**的值；
+- 若它的右子树不空，则右子树上所有结点的值均大于它的根结点的值；
+- 它的**左、右子树也分别为二叉排序树**
+
+下面这两棵树都是搜索树 <img src="https://img-blog.csdnimg.cn/20200806190304693.png" alt="img" style="zoom: 67%;" />
+
+**平衡二叉搜索树**
+
+平衡二叉搜索树：又被称为AVL（Adelson-Velsky and Landis）树，且具有以下性质：它是一棵空树或它的左右两个子树的高度差的绝对值不超过1，并且左右两个子树都是一棵平衡二叉树。
+
+如图：
+
+<img src="https://img-blog.csdnimg.cn/20200806190511967.png" alt="img" style="zoom:50%;" />
+
+最后一棵 不是平衡二叉树，因为它的左右两个子树的高度差的绝对值超过了1。
+
+**C++中map、set、multimap，multiset的底层实现都是平衡二叉搜索树**，所以map、set的增删操作时间时间复杂度是logn，注意我这里没有说unordered_map、unordered_set，unordered_map、unordered_map底层实现是哈希表。
+
+**所以大家使用自己熟悉的编程语言写算法，一定要知道常用的容器底层都是如何实现的，最基本的就是map、set等等，否则自己写的代码，自己对其性能分析都分析不清楚！**
 
 #### 2.二叉树的存储方式
 
@@ -1609,6 +1657,209 @@ private:
     }
 };
 ```
+
+### 十五、二叉搜索树中的搜索
+
+[力扣题目地址](https://leetcode.cn/problems/search-in-a-binary-search-tree/)
+
+给定二叉搜索树（BST）的根节点和一个值。 你需要在BST中找到节点值等于给定值的节点。 返回以该节点为根的子树。 如果节点不存在，则返回 NULL。
+
+例如，
+
+<img src="https://img-blog.csdnimg.cn/20210204155522476.png" alt="700.二叉搜索树中的搜索" style="zoom:50%;" />
+
+在上述示例中，如果要找的值是 5，但因为没有节点值为 5，我们应该返回 NULL。
+
+#### **1.递归**
+
+二叉搜索树满足如下性质：
+
+左子树所有节点的元素值均小于根的元素值；
+右子树所有节点的元素值均大于根的元素值。
+据此可以得到如下算法：
+
+- 若 root 为空则返回空节点；
+
+- 若 val=root.val，则返回root；
+- 若 val<root.val，递归左子树；
+- 若val>root.val，递归右子树。
+
+```c++
+//递归
+class Solution {
+public:
+    TreeNode* searchBST(TreeNode* root, int val) {
+        if(root == nullptr || root->val == val) return root;
+        if(root->val > val) return searchBST(root->left, val);
+        return searchBST(root->right, val);
+    }
+};
+```
+
+#### 2.迭代
+
+将方法一的递归改成迭代写法：
+
+- 若root 为空则跳出循环，并返回空节点；
+- 若val=root.val，则返回root；
+- 若val<root.val，将root 置为root.left；
+- 若val>root.val，将root 置为root.right。
+
+```c++
+//迭代
+class Solution {
+public:
+    TreeNode* searchBST(TreeNode* root, int val) {
+        if(root == nullptr) return nullptr;
+        TreeNode* node = root;
+        while(node) {
+            if(node->val == val) {
+                return node;
+            } 
+            else {
+                node = node->val > val ? node->left : node->right;
+            }
+        }
+        return nullptr;
+    }
+};
+```
+
+### 十六、验证二叉搜索树
+
+[力扣题目链接](https://leetcode.cn/problems/validate-binary-search-tree/)
+
+给定一个二叉树，判断其是否是一个有效的二叉搜索树。
+
+假设一个二叉搜索树具有如下特征：
+
+- 节点的左子树只包含小于当前节点的数。
+- 节点的右子树只包含大于当前节点的数。
+- 所有左子树和右子树自身必须也是二叉搜索树。
+
+<img src="https://img-blog.csdnimg.cn/20210203144334501.png" alt="98.验证二叉搜索树" style="zoom: 50%;" />
+
+#### 1.递归（前序）
+
+我的错误算法：
+
+```c++
+class Solution {
+public:
+    bool isValidBST(TreeNode* root) {
+        if(root == nullptr) return true;
+        if(!root->left && !root->right) return true;
+        if(root->left && !root->right) {
+            if(root->val > root->left->val)
+                return isValidBST(root->left);
+            else
+                return false;
+        }
+        if(!root->left && root->right) {
+            if(root->val < root->right->val)
+                return isValidBST(root->right);
+            else
+                return false;
+        }
+        if(root->left && root->right) {
+            if(root->val < root->right->val && root->val > root->left->val)
+                return isValidBST(root->right) && isValidBST(root->left);
+            else
+                return false;
+        }
+        return false;
+    }
+};
+```
+
+注意：如二叉搜索树的右子树的某个左节点不仅要大于子树的根节点还必须大于整棵树的根节点，则该右子树的左节点需在区间 (root->val, sub_root->val)内。
+
+**我们要比较的是 左子树所有节点小于中间节点，右子树所有节点大于中间节点**。所以以上代码的判断逻辑是错误的。
+
+**不能单纯的比较左节点小于中间节点，右节点大于中间节点就完事了**。
+
+例如： [10,5,15,null,null,6,20] 这个case：
+
+<img src="https://img-blog.csdnimg.cn/20200812191501419.png" alt="二叉搜索树" style="zoom:50%;" />
+
+节点10大于左节点5，小于右节点15，但右子树里出现了一个6 这就不符合了！
+
+注意：样例中最小节点 可能是int的最小值，如果这样使用最小的int来比较也是不行的。
+
+此时可以初始化比较元素为longlong类型。
+
+正确的递归代码：
+
+```c++
+class Solution {
+public:
+    bool helper(TreeNode* root, long long lower, long long upper) {
+        if (root == nullptr) {
+            return true;
+        }
+        if (root -> val <= lower || root -> val >= upper) {
+            return false;
+        }
+        return helper(root -> left, lower, root -> val) && helper(root -> right, root -> val, upper);
+    }
+    bool isValidBST(TreeNode* root) {
+        return helper(root, LONG_MIN, LONG_MAX);
+    }
+};
+```
+
+
+
+**★更好的解法★**：二叉搜索树**「中序遍历」**得到的值构成的序列一定是升序的，这启示我们在中序遍历的时候实时检查当前节点的值是否大于前一个中序遍历到的节点的值即可。如果均大于说明这个序列是升序的，整棵树是二叉搜索树，否则不是.
+
+#### 2.中序遍历（递归）
+
+```c++
+class Solution {
+public:
+    TreeNode* pre = NULL; // 用来记录前一个节点
+    bool isValidBST(TreeNode* root) {
+        if (root == NULL) return true;
+        bool left = isValidBST(root->left);
+
+        if (pre != NULL && pre->val >= root->val) return false;
+        pre = root; // 记录前一个节点
+
+        bool right = isValidBST(root->right);
+        return left && right;
+    }
+};
+```
+
+#### 3.中序遍历（迭代）
+
+```c++
+//中序(迭代)
+class Solution {
+public:
+    bool isValidBST(TreeNode* root) {
+        TreeNode* cur = root;
+        TreeNode* pre = nullptr;
+        stack<TreeNode*> stk;
+        while(cur != nullptr || !stk.empty()) {
+            if(cur != nullptr) {
+                stk.push(cur);
+                cur = cur->left;    //左
+            } else {
+                cur = stk.top();    //中
+                stk.pop();
+                if(pre != nullptr && cur->val <= pre->val) //pre != nullptr第一次需要，遍历的节点值非严格升序，false
+                return false; 
+                pre = cur;			//保存前一个访问的结点
+                cur = cur->right;   //右
+            }
+        }
+        return true;
+    }
+};
+```
+
+
 
 
 
