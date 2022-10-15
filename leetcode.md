@@ -1660,6 +1660,8 @@ private:
 
 ### 十五、二叉搜索树中的搜索
 
+**二叉搜索树的一条性质要牢记：中序遍历二叉搜索树得到的序列是升序的。**
+
 [力扣题目地址](https://leetcode.cn/problems/search-in-a-binary-search-tree/)
 
 给定二叉搜索树（BST）的根节点和一个值。 你需要在BST中找到节点值等于给定值的节点。 返回以该节点为根的子树。 如果节点不存在，则返回 NULL。
@@ -1859,10 +1861,297 @@ public:
 };
 ```
 
+### 十七、二叉搜索树的最小绝对差
 
+[力扣题目链接](https://leetcode.cn/problems/minimum-absolute-difference-in-bst/)
 
+给你一棵所有节点为非负值的二叉搜索树，请你计算树中任意两节点的差的绝对值的最小值。
 
+示例：
+
+<img src="https://img-blog.csdnimg.cn/20201014223400123.png" alt="530二叉搜索树的最小绝对差" style="zoom:50%;" />
+
+提示：树中至少有 2 个节点。
+
+思路：二叉搜索树采用中序遍历，其实就是一个有序数组。**在一个有序数组上求两个数最小差值。**
+
+最直观的想法，就是遍历一遍二叉搜索树，相邻元素做差，就统计出来最小差值了。
+
+**需要用一个pre节点记录一下cur节点的前一个节点。**
+
+如图：
+
+<img src="https://img-blog.csdnimg.cn/20210204153247458.png" alt="530.二叉搜索树的最小绝对差" style="zoom:50%;" />
+
+```c++
+//中序遍历(迭代),依次做差
+class Solution {
+public:
+    int getMinimumDifference(TreeNode* root) {
+        TreeNode* cur = root;
+        TreeNode* pre = nullptr;
+        stack<TreeNode*> stk;
+        int abs_min=INT_MAX;
+        while(cur != nullptr || !stk.empty()) {
+            if(cur != nullptr) {
+                stk.push(cur);
+                cur = cur->left;
+            } else {
+                cur = stk.top();
+                stk.pop();
+                if(pre != nullptr)
+                    abs_min = min(cur->val - pre->val, abs_min);
+                pre = cur;
+                cur = cur->right;
+            }
+        }
+        return abs_min;
+    }
+};
+
+//中序遍历(递归)
+class Solution {
+public:
+    TreeNode* pre = nullptr;
+    int abs_min = INT_MAX;
+    int getMinimumDifference(TreeNode* root) {
+        dfs(root);
+        return abs_min;
+    }
+private:
+    void dfs(TreeNode* cur) {
+        if(cur == nullptr) return;
+        dfs(cur->left);    //左
+        if(pre != nullptr) {    //中
+            abs_min = min(abs_min, cur->val - pre->val);
+        }
+        pre = cur;
+        dfs(cur->right);    //右
+    }
+};
+```
+
+### 十八、二叉搜索树中的众数
+
+[力扣题目链接](https://leetcode.cn/problems/find-mode-in-binary-search-tree/)
+
+给定一个有相同值的二叉搜索树（BST），找出 BST 中的所有众数（出现频率最高的元素）。
+
+假定 BST 有如下定义：
+
+- 结点左子树中所含结点的值小于等于当前结点的值
+- 结点右子树中所含结点的值大于等于当前结点的值
+- 左子树和右子树都是二叉搜索树
+
+例如：
+
+给定 BST [1,null,2,2],
+
+<img src="https://img-blog.csdnimg.cn/20201014221532206.png" alt="501. 二叉搜索树中的众数" style="zoom:50%;" />
+
+返回[2].
+
+提示：如果众数超过1个，不需考虑输出顺序
+
+**思路：**
+
+这道题目呢，递归法我从两个维度来讲。
+
+**首先如果不是二叉搜索树的话，应该怎么解题，是二叉搜索树，又应该如何解题**，两种方式做一个比较，可以加深大家对二叉树的理解。
+
+#### 1.递归法
+
+**如果不是二叉搜索树**
+
+如果不是二叉搜索树，最直观的方法一定是**把这个树都遍历了，用map统计频率，把频率排个序，最后取前面高频的元素的集合**。
+
+具体步骤如下：
+
+​	1.这个树都遍历了，用map统计频率
+
+至于用前中后序那种遍历也不重要，因为就是要全遍历一遍，怎么个遍历法都行，层序遍历都没毛病！
+
+这里采用前序遍历，代码如下：
+
+```cpp
+// map<int, int> key:元素，value:出现频率
+void searchBST(TreeNode* cur, unordered_map<int, int>& map) { // 前序遍历
+    if (cur == NULL) return ;
+    map[cur->val]++; // 中：统计元素频率
+    searchBST(cur->left, map); //左
+    searchBST(cur->right, map);	//右
+    return ;
+}
+```
+
+​	2.把统计的出来的出现频率（即map中的value）排个序
+
+有的同学可能可以想直接对map中的value排序，还真做不到，C++中如果使用std::map或者std::multimap可以对key排序，但不能对value排序。
+
+所以要把map转化数组即vector，再进行排序，当然vector里面放的也是`pair<int, int>`类型的数据，第一个int为元素，第二个int为出现频率。
+
+代码如下：
+
+```cpp
+bool static cmp (const pair<int, int>& a, const pair<int, int>& b) {
+    return a.second > b.second; // 按照频率从大到小排序
+}
+
+vector<pair<int, int>> vec(map.begin(), map.end());
+sort(vec.begin(), vec.end(), cmp); // 按照cmp排序规则，给频率排个序
+```
+
+​	3.取前面高频的元素
+
+此时数组vector中已经是存放着按照频率排好序的pair，那么把前面高频的元素取出来就可以了。
+
+代码如下：
+
+```cpp
+result.push_back(vec[0].first);
+for (int i = 1; i < vec.size(); i++) {
+    // 取最高的放到result数组中
+    if (vec[i].second == vec[0].second) result.push_back(vec[i].first);
+    else break;
+}
+return result;
+```
+
+整体C++代码如下：
+
+```c++
+class Solution {
+private:
+
+void searchBST(TreeNode* cur, unordered_map<int, int>& map) { // 前序遍历
+    if (cur == NULL) return ;
+    map[cur->val]++; // 统计元素频率
+    searchBST(cur->left, map);
+    searchBST(cur->right, map);
+    return ;
+}
+bool static cmp (const pair<int, int>& a, const pair<int, int>& b) {
+    return a.second > b.second;
+}
+public:
+    vector<int> findMode(TreeNode* root) {
+        unordered_map<int, int> map; // key:元素，value:出现频率
+        vector<int> result;
+        if (root == NULL) return result;
+        searchBST(root, map);
+        vector<pair<int, int>> vec(map.begin(), map.end());//map转vector
+        sort(vec.begin(), vec.end(), cmp); // 给频率排个序
+        result.push_back(vec[0].first);
+        for (int i = 1; i < vec.size(); i++) {//是否有频率相同的数
+            // 取最高的放到result数组中
+            if (vec[i].second == vec[0].second) result.push_back(vec[i].first);
+            else break;
+        }
+        return result;
+    }
+};
+```
+
+#### 2.迭代法
+
+**如果是二叉搜索树，它中序遍历就是有序的**，这里使用迭代法求解。
+
+```c++
+class Solution {
+public:        
+    TreeNode* cur;;
+    TreeNode* pre = nullptr;
+    vector<int> ret;
+    int max_cnt = 0, cnt = 0;
+    vector<int> findMode(TreeNode* root) {
+        cur = root;
+        stack<TreeNode*> stk;
+        while(cur != nullptr || !stk.empty()) {
+            if(cur != nullptr) {
+                stk.push(cur);
+                cur = cur->left;    //左
+            } else {    //中
+                cur = stk.top();
+                stk.pop();
+                update(cur->val);
+                pre = cur;
+                cur = cur->right;   //右
+            }
+        }
+        return ret;
+    }
+private:
+    void update(int val) {
+        if(pre == nullptr) { //处理第一个节点
+            cnt = 1;
+        } else if (pre->val == cur->val) { //与前一个节点值相同
+            cnt++;
+        } else {    //与前一个节点值不相同
+            cnt = 1;
+        }
+        if(cnt == max_cnt) { //如果和最大值相同，放进result中
+            ret.push_back(cur->val);
+        }
+        if(cnt > max_cnt) { //如果大于最大值
+            max_cnt = cnt;  //更新最大值
+            ret.clear(); // 很关键的一步，不要忘记清空result，之前result里的元素都失效了
+            ret.push_back(cur->val);
+        }
+    }
+};
+```
+
+### 十九、二叉树的最近公共祖先
+
+[力扣题目链接](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/)
+
+给定一个二叉树, 找到该树中两个指定节点的最近公共祖先。
+
+百度百科中最近公共祖先的定义为：“对于有根树 T 的两个结点 p、q，最近公共祖先表示为一个结点 x，满足 x 是 p、q 的祖先且 x 的深度尽可能大（一个节点也可以是它自己的祖先）。”
+
+例如，给定如下二叉树: root = [3,5,1,6,2,0,8,null,null,7,4]
+
+<img src="https://img-blog.csdnimg.cn/20201016173414722.png" alt="236. 二叉树的最近公共祖先" style="zoom:50%;" />
+
+示例 1: 输入: root = [3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 1 输出: 3 解释: 节点 5 和节点 1 的最近公共祖先是节点 3。
+
+说明:
+
+- 所有节点的值都是唯一的。
+- p、q 为不同节点且均存在于给定的二叉树中。
+
+**思路**：
+
+```c++
+//后序遍历(回溯)
+class Solution {
+public:
+    TreeNode* ret;
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) { 
+        dfs(root, p, q);
+        return ret;
+    }
+private:
+    bool dfs(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if(root == NULL) return false;
+        bool left = dfs(root->left, p, q); //左
+        bool right = dfs(root->right, p, q); //右
+        //①当前节点的左右子树都找到p和q了；②当前节点的左子树或右子树找到p或q，且当前节点本身是q或p； 则当前节点就是最近祖先
+        if((left && right) || (left || right) && (root->val == p->val || root->val == q->val)) { //中
+            ret = root;//记录最近公共祖先
+        }
+        //递归返回需要的结果，即：子树是否包含节点p或q
+        return (left || right) || (root->val == p->val || root->val == q->val);
+    }
+};
+```
+
+注意的两点:
+
+1. 求最近公共祖先，需要从底向上遍历，那么二叉树，只能通过**后序遍历**（即：回溯）实现从低向上的遍历方式。
+2. 在回溯的过程中，必然**要遍历整棵二叉树，即使已经找到结果了，依然要把其他节点遍历完**，因为要使用递归函数的返回值（也就是代码中的left和right）做逻辑判断。
 
 ### 二叉树总结
 
 <img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20211030125421.png" alt="img" style="zoom:150%;" />
+
