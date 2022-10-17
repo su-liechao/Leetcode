@@ -2120,7 +2120,7 @@ private:
 - 所有节点的值都是唯一的。
 - p、q 为不同节点且均存在于给定的二叉树中。
 
-**思路**：
+**思路**：**遇到一个节点的左子树里有p，右子树里有q，那么当前节点就是最近公共祖先。**
 
 ```c++
 //后序遍历(回溯)
@@ -2150,6 +2150,281 @@ private:
 
 1. 求最近公共祖先，需要从底向上遍历，那么二叉树，只能通过**后序遍历**（即：回溯）实现从低向上的遍历方式。
 2. 在回溯的过程中，必然**要遍历整棵二叉树，即使已经找到结果了，依然要把其他节点遍历完**，因为要使用递归函数的返回值（也就是代码中的left和right）做逻辑判断。
+
+### 二十、二叉搜索树的最近公共祖先
+
+[力扣题目链接](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-search-tree/)
+
+给定一个二叉搜索树, 找到该树中两个指定节点的最近公共祖先。
+
+百度百科中最近公共祖先的定义为：“对于有根树 T 的两个结点 p、q，最近公共祖先表示为一个结点 x，满足 x 是 p、q 的祖先且 x 的深度尽可能大（一个节点也可以是它自己的祖先）。”
+
+例如，给定如下二叉搜索树: root = [6,2,8,0,4,7,9,null,null,3,5]
+
+<img src="https://img-blog.csdnimg.cn/20201018172243602.png" alt="235. 二叉搜索树的最近公共祖先" style="zoom:50%;" />
+
+示例 1:
+
+- 输入: root = [6,2,8,0,4,7,9,null,null,3,5], p = 2, q = 8
+- 输出: 6
+- 解释: 节点 2 和节点 8 的最近公共祖先是 6。
+
+#### 1.当作普通二叉树处理
+
+​	做法和上一题完全相同
+
+#### 2.利用二叉搜索树的性质
+
+​	因为是有序树，所有 如果 中间节点是 q 和 p 的公共祖先，那么 中节点的数组 一定是在 [p, q]区间的。即 中节点 > p && 中节点 < q 或者 中节点 > q && 中节点 < p。那么只要**自顶向下遍历二叉搜索树**(上一题的普通二叉树是自底向上查找),遇到 cur节点是数值在[p, q]区间中则一定可以说明该节点cur就是q 和 p的公共祖先。
+
+递归：
+
+```c++
+//二叉搜索树的递归方法
+class Solution {
+    public:
+    TreeNode* ret;
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        return dfs(root, p, q);
+    }
+    TreeNode* dfs(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if(root == NULL) return NULL;
+        //自顶向下遍历，当前节点值都大于p、q,或都小于p,q，则访问左节点或右节点
+        if(root->val > p->val && root->val > q->val) {
+            return dfs(root->left, p, q);
+        }
+        else if(root->val < p->val && root->val < q->val){
+            return dfs(root->right, p, q);
+        }
+        else {//root的值位于p、q值之间
+            return root;
+        }
+    }
+};
+};
+```
+
+迭代：
+
+```c++
+//二叉搜索树的迭代方法
+class Solution {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        while(root) {
+            if (root->val > p->val && root->val > q->val) {
+                root = root->left;
+            } else if (root->val < p->val && root->val < q->val) {
+                root = root->right;
+            } else return root;
+        }
+        return NULL;
+    }
+};
+```
+
+### 二十一、二叉搜索树中的插入操作
+
+[力扣题目链接](https://leetcode.cn/problems/insert-into-a-binary-search-tree/)
+
+给定二叉搜索树（BST）的根节点和要插入树中的值，将值插入二叉搜索树。 返回插入后二叉搜索树的根节点。 输入数据保证，新值和原始二叉搜索树中的任意节点值都不同。
+
+注意，可能存在多种有效的插入方式，只要树在插入后仍保持为二叉搜索树即可。 你可以返回任意有效的结果。
+
+<img src="https://img-blog.csdnimg.cn/20201019173259554.png" alt="701.二叉搜索树中的插入操作" style="zoom:50%;" />
+
+提示：
+
+- 给定的树上的节点数介于 0 和 10^4 之间
+- 每个节点都有一个唯一整数值，取值范围从 0 到 10^8
+- -10^8 <= val <= 10^8
+- 新值和原始二叉搜索树中的任意节点值都不同
+
+**思路：**
+
+​	其实这道题目其实是一道简单题目，**但是题目中的提示：有多种有效的插入方式，还可以重构二叉搜索树...，**其实可以不考虑题目中提示所说的改变树的结构的插入方式。
+
+如下演示视频中可以看出：只要按照二叉搜索树的规则去遍历，遇到空节点就插入节点就可以了。
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gnbk63ina5g30eo08waja.gif" alt="701.二叉搜索树中的插入操作" style="zoom:50%;" />
+
+例如插入元素10 ，需要找到末尾节点插入便可，一样的道理来插入元素15，插入元素0，插入元素6，**并不需要调整二叉树结构**。。
+
+只要遍历二叉搜索树，找到空节点 插入元素就可以了，那么这道题其实就简单了。
+
+接下来就是遍历二叉搜索树的过程了。
+
+#### 1.DFS
+
+递归三部曲：
+
+- 确定递归函数参数以及返回值
+
+参数就是根节点指针，以及要插入元素，这里递归函数要不要有返回值呢？
+
+可以有，也可以没有，但递归函数如果没有返回值的话，实现是比较麻烦的，下面也会给出其具体实现代码。
+
+**有返回值的话，可以利用返回值完成新加入的节点与其父节点的赋值操作**。（下面会进一步解释）
+
+递归函数的返回类型为节点类型TreeNode * 。
+
+代码如下：
+
+```c++
+TreeNode* insertIntoBST(TreeNode* root, int val)
+```
+
+- 确定终止条件
+
+终止条件就是找到遍历的节点为null的时候，就是要插入节点的位置了，并把插入的节点返回。
+
+代码如下：
+
+```c++
+if (root == NULL) {
+    TreeNode* node = new TreeNode(val);
+    return node;
+}
+```
+
+这里把添加的节点返回给上一层，就完成了父子节点的赋值操作了，详细再往下看。
+
+- 确定单层递归的逻辑
+
+此时要明确，需要遍历整棵树么？
+
+别忘了这是搜索树，遍历整棵搜索树简直是对搜索树的侮辱，哈哈。
+
+搜索树是有方向的，可以根据插入元素的数值，选择递归方向。
+
+代码如下：
+
+```c++
+if (root->val > val) root->left = insertIntoBST(root->left, val);
+if (root->val < val) root->right = insertIntoBST(root->right, val);
+return root;
+```
+
+**到这里能感受到，如何通过递归函数返回值完成了新加入节点的父子关系赋值操作了，下一层将加入节点返回，本层用root->left或者root->right将其接住**。
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    TreeNode* insertIntoBST(TreeNode* root, int val) {
+        if(root == nullptr) {
+            TreeNode* node = new TreeNode(val);
+            return node;
+        }
+        if(root->val > val) root->left = insertIntoBST(root->left, val);
+        if(root->val < val) root->right = insertIntoBST(root->right, val);
+        return root;//别忘了递归返回
+    }
+};
+```
+
+### 二十二、删除二叉搜索树中的节点
+
+[力扣题目链接](https://leetcode.cn/problems/delete-node-in-a-bst/)
+
+给定一个二叉搜索树的根节点 root 和一个值 key，删除二叉搜索树中的 key 对应的节点，并保证二叉搜索树的性质不变。返回二叉搜索树（有可能被更新）的根节点的引用。
+
+一般来说，删除节点可分为两个步骤：
+
+首先找到需要删除的节点； 如果找到了，删除它。 说明： 要求算法时间复杂度为 O(h)，h 为树的高度。
+
+示例:
+
+<img src="https://img-blog.csdnimg.cn/20201020171048265.png" alt="450.删除二叉搜索树中的节点" style="zoom:50%;" />
+
+提示:
+
+节点数的范围 [0, 10^4].
+-10^5 <= Node.val <= 10^5
+节点值唯一
+root 是合法的二叉搜索树
+-10^5<= key <= 10^5
+
+#### 1.二叉搜索树的方法
+
+**思路：**根据二叉搜索树的性质：
+
+- 如果目标节点大于当前节点值，则去右子树中删除；
+
+- 如果目标节点小于当前节点值，则去左子树中删除；
+- 如果目标节点就是当前节点，分为以下三种情况：
+
+​			1.其无左子：其右子顶替其位置，删除了该节点；
+​			2.其无右子：其左子顶替其位置，删除了该节点；
+​			3.其左右子节点都有：其左子树转移到其右子树的最左节点的左子树上，然后右子树顶替其位置，由此删除了该节点。
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    TreeNode* deleteNode(TreeNode* root, int key) {
+        if(root == nullptr) return root;
+        if(root->val == key) {
+            if(root->left == nullptr) { //左节点为空，右节点直接补上当前删除节点
+                root = root->right;
+            }
+            else if(root->right == nullptr) {   //右节点为空，左节点直接补上当前删除节点
+                root = root->left;
+            }
+            else {  //左右节点皆非空
+                TreeNode* cur = root->right;//右子树的根节点
+                while(cur->left) {
+                    cur = cur->left;
+                }
+                cur->left = root->left;//左子树移到右子树最左端.
+                TreeNode* tmp = root;// 把root节点保存一下，下面来删除
+                root = root->right;//右子树补上当前删除节点
+                delete tmp;       // 释放节点内存
+            }       
+        }
+        else if(root->val > key) root->left = deleteNode(root->left, key);
+        else root->right = deleteNode(root->right, key);
+        return root;
+    }
+};
+```
+
+#### 2.普通二叉树的删除方式
+
+这里我在介绍一种通用的删除，普通二叉树的删除方式（没有使用搜索树的特性，遍历整棵树），用交换值的操作来删除目标节点。
+
+代码中目标节点（要删除的节点）被操作了两次：
+
+- 第一次是和目标节点的右子树最左面节点交换。
+- 第二次直接被NULL覆盖了。
+
+思路有点绕，感兴趣的同学可以画图自己理解一下。
+
+代码如下：（关键部分已经注释）
+
+```cpp
+class Solution {
+public:
+    TreeNode* deleteNode(TreeNode* root, int key) {
+        if (root == nullptr) return root;
+        if (root->val == key) {
+            if (root->right == nullptr) { // 这里第二次操作目标值：最终删除的作用
+                return root->left;
+            }
+            TreeNode *cur = root->right;
+            while (cur->left) {
+                cur = cur->left;
+            }
+            swap(root->val, cur->val); // 这里第一次操作目标值：交换目标值其右子树最左面节点。
+        }
+        root->left = deleteNode(root->left, key);
+        root->right = deleteNode(root->right, key);
+        return root;
+    }
+};
+```
 
 ### 二叉树总结
 
