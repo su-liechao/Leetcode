@@ -51,7 +51,7 @@
 
 **平衡二叉搜索树**
 
-平衡二叉搜索树：又被称为AVL（Adelson-Velsky and Landis）树，且具有以下性质：它是一棵空树或它的左右两个子树的高度差的绝对值不超过1，并且左右两个子树都是一棵平衡二叉树。
+平衡二叉搜索树：又被称为AVL（Adelson-Velsky and Landis）树，且具有以下性质：它是一棵空树或它的**左右两个子树的高度差的绝对值不超过1**，并且左右两个子树都是一棵平衡二叉树。
 
 如图：
 
@@ -2425,6 +2425,155 @@ public:
     }
 };
 ```
+
+### 二十三、修剪二叉搜索树
+
+[力扣题目链接](https://leetcode.cn/problems/trim-a-binary-search-tree/)
+
+给定一个二叉搜索树，同时给定最小边界L 和最大边界 R。通过修剪二叉搜索树，使得所有节点的值在[L, R]中 (R>=L) 。你可能需要改变树的根节点，所以结果应当返回修剪好的二叉搜索树的新的根节点。
+
+<img src="https://img-blog.csdnimg.cn/20201014173115788.png" alt="669.修剪二叉搜索树" style="zoom: 50%;" />
+
+<img src="https://img-blog.csdnimg.cn/20201014173219142.png" alt="669.修剪二叉搜索树1" style="zoom:50%;" />
+
+#### 1.DFS
+
+思路：
+
+- 对根结点root 进行深度优先遍历。对于当前访问的结点，如果结点为空结点，直接返回空结点；
+- 如果结点的值小于low，那么**说明该结点及它的左子树都不符合要求**，我们返回对它的右结点进行修剪后的结果；
+- 如果结点的值大于high，那么**说明该结点及它的右子树都不符合要求**，我们返回对它的左子树进行修剪后的结果；
+- 如果结点的值位于区间[low, high]，我们将结点的左结点设为对它的左子树修剪后的结果，右结点设为对它的右子树进行修剪后的结果。
+
+完整代码：
+
+```c++
+//递归
+class Solution {
+public:
+    TreeNode* trimBST(TreeNode* root, int low, int high) {
+        if(root == nullptr) return nullptr;
+        if(root->val < low) {
+            return trimBST(root->right, low, high);
+        } else if(root->val > high) {
+            return trimBST(root->left, low, high);
+        } else {
+            root->left = trimBST(root->left, low, high);
+            root->right = trimBST(root->right, low, high);
+            return root;
+        }
+    }
+};
+```
+
+**复杂度分析**
+
+- 时间复杂度：O(n)，其中 n 为二叉树的结点数目。
+- 空间复杂度：O(n)。递归栈最坏情况下需要 O(n) 的空间。
+
+#### 2.迭代
+
+思路：
+
+起始先从给定的 root 进行出发，找到第一个满足值符合[low ,high] 范围的节点，该节点为最后要返回的根节点 root。
+
+随后考虑如何修剪 root 的左右节点：当根节点符合 [low ,high] 要求时，**修剪左右节点过程中仅需考虑一边的边界值即可**。即对于 root->left只需考虑将值小于 low 的节点去掉（因为二叉搜索树的特性，root->val 满足不大于 high 要求，则其左节点必然满足）；同理 root->right 只需要考虑将大于 high 的节点去掉即可。
+
+完整代码：
+
+```c++
+//迭代
+class Solution {
+public:
+    TreeNode* trimBST(TreeNode* root, int low, int high) {
+        while(root && (root->val < low || root->val > high)) {
+            if(root->val < low) {
+                root = root->right;
+            } else {
+                root = root->left;
+            }
+        }
+        //根节点已经满足要求，下面处理左子树
+        TreeNode* cur = root;
+        while(cur) {
+            while(cur->left && cur->left->val < low) {//不用判断cur->val > high,因为根节点已经满足小于high，左子树必然满足
+                cur->left = cur->left->right;
+            }
+            cur = cur->left;
+        }
+        //处理右子树
+        cur = root;
+        while(cur) {
+            while(cur->right && cur->right->val > high) {
+                cur->right = cur->right->left;
+            }
+            cur = cur->right;
+        }
+        return root;
+    }
+};
+```
+
+### 二十四、将有序数组转换为二叉搜索树
+
+[力扣题目链接](https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/)
+
+将一个按照升序排列的有序数组，转换为一棵高度平衡二叉搜索树。
+
+本题中，一个高度平衡二叉树是指一个二叉树每个节点 的左右两个子树的高度差的绝对值不超过 1。
+
+示例:
+
+<img src="https://img-blog.csdnimg.cn/20201022164420763.png" alt="108.将有序数组转换为二叉搜索树" style="zoom:50%;" />
+
+思路：
+
+强调是平衡二叉搜索树。其实数组构造二叉树，构成平衡树是自然而然的事情，因为大家默认都是从**数组中间位置取值作为节点元素**，一般不会随机取。**所以想构成不平衡的二叉树是自找麻烦**。
+
+在[二叉树：构造二叉树登场！](https://programmercarl.com/0106.从中序与后序遍历序列构造二叉树.html)和[二叉树：构造一棵最大的二叉树 ](https://programmercarl.com/0654.最大二叉树.html)中其实已经讲过了，如果根据数组构造一棵二叉树。
+
+**本质就是寻找分割点，分割点作为当前节点，然后递归左区间和右区间**。
+
+**分割点就是数组中间位置的节点**。
+
+那么为问题来了，如果数组长度为偶数，中间节点有两个，取哪一个？
+
+取哪一个都可以，只不过构成了不同的平衡二叉搜索树。
+
+例如：输入：[-10,-3,0,5,9]
+
+如下两棵树，都是这个数组的平衡二叉搜索树：
+
+<img src="https://code-thinking.cdn.bcebos.com/pics/108.%E5%B0%86%E6%9C%89%E5%BA%8F%E6%95%B0%E7%BB%84%E8%BD%AC%E6%8D%A2%E4%B8%BA%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91.png" alt="108.将有序数组转换为二叉搜索树" style="zoom:50%;" />
+
+如果要分割的数组长度为偶数的时候，中间元素为两个，是取左边元素 就是树1，取右边元素就是树2。
+
+**这也是题目中强调答案不是唯一的原因。 理解这一点，这道题目算是理解到位了**。
+
+#### 1.DFS
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    TreeNode* sortedArrayToBST(vector<int>& nums) {
+       TreeNode* root = dfs(nums, 0, nums.size() - 1);
+       return root;
+    }
+private:
+    TreeNode* dfs(vector<int>& nums, int left, int right) {
+        if(left > right) return nullptr;
+        int mid = left + (right - left) / 2;
+        TreeNode* node = new TreeNode(nums[mid]);
+        node->left = dfs(nums, left, mid - 1);
+        node->right = dfs(nums, mid + 1, right);
+        return node;
+    }
+};
+```
+
+
 
 ### 二叉树总结
 
