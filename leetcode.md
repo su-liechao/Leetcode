@@ -2573,9 +2573,85 @@ private:
 };
 ```
 
+### 二十五、把二叉搜索树转换为累加树
+
+[力扣题目链接](https://leetcode.cn/problems/convert-bst-to-greater-tree/)
+
+给出二叉 搜索 树的根节点，该树的节点值各不相同，请你将其转换为累加树（Greater Sum Tree），使每个节点 node 的新值等于原树中大于或等于 node.val 的值之和。
+
+提醒一下，二叉搜索树满足下列约束条件：
+
+节点的左子树仅包含键 小于 节点键的节点。 节点的右子树仅包含键 大于 节点键的节点。 左右子树也必须是二叉搜索树。
+
+示例 1：
+
+<img src="https://img-blog.csdnimg.cn/20201023160751832.png" alt="538.把二叉搜索树转换为累加树" style="zoom:50%;" />
+
+- 输入：[4,1,6,0,2,5,7,null,null,null,3,null,null,null,8]
+- 输出：[30,36,21,36,35,26,15,null,null,null,33,null,null,null,8]
+
+**思路**：本题中要求我们将每个节点的值修改为原来的节点值加上所有大于它的节点值之和。这样我们只需要**反序中序遍历该二叉搜索树**，记录过程中的节点值之和，并不断更新当前遍历到的节点的节点值，即可得到题目要求的累加树。
+
+**1.递归**
+
+```c++
+//反序中序遍历--递归
+class Solution {
+public:
+    int pre = 0;	// 记录前一个节点的数值
+    TreeNode* convertBST(TreeNode* root) {
+        if(root == nullptr) return nullptr;
+        convertBST(root->right);
+        pre += root->val;
+        root->val = pre;
+        convertBST(root->left);
+        return root;
+    }
+};
+```
+
+**2.迭代**
+
+```c++
+//反序中序遍历--迭代
+class Solution {
+public:
+    TreeNode* convertBST(TreeNode* root) {
+        int pre = 0;	// 记录前一个节点的数值
+        TreeNode* cur = root;
+        stack<TreeNode*> stk;
+        while(cur != nullptr || !stk.empty()) {
+            if(cur != nullptr) {
+                stk.push(cur);
+                cur = cur->right;
+            } else {
+                cur = stk.top();
+                stk.pop();
+                pre += cur->val;
+                cur->val = pre;
+                cur = cur->left;
+            }
+        }
+        return root;
+    }
+};
+```
 
 
-### 二叉树总结
+
+### 二十六、二叉树总结
+
+**在二叉树题目选择什么遍历顺序，可以大体分分类**。
+
+- 涉及到二叉树的构造，无论普通二叉树还是二叉搜索树一定前序，都是先构造中节点。
+- 求普通二叉树的属性，一般是后序，一般要通过递归函数的返回值做计算。
+- **求二叉搜索树的属性，一定是中序了，要不白瞎了有序性了。**
+
+注意在普通二叉树的属性中，我用的是一般为后序，这是为了方便让父节点指向子节点。
+
+所以求普通二叉树的属性还是要具体问题具体分析。
+
+二叉树专题汇聚为一张图：
 
 <img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20211030125421.png" alt="img" style="zoom:150%;" />
 
