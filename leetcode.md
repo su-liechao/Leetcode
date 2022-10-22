@@ -1,5 +1,153 @@
 # leetcode笔记
 
+## 数组
+
+### 一、二分查找
+
+[力扣题目链接](https://leetcode.cn/problems/binary-search/)
+
+给定一个 n 个元素有序的（升序）整型数组 nums 和一个目标值 target  ，写一个函数搜索 nums 中的 target，如果目标值存在返回下标，否则返回 -1。
+
+示例 1:
+
+```text
+输入: nums = [-1,0,3,5,9,12], target = 9     
+输出: 4       
+解释: 9 出现在 nums 中并且下标为 4     
+```
+
+定义 target 是在一个在左闭右闭的区间里，**也就是[left, right] （这个很重要非常重要）**。
+
+区间的定义这就决定了二分法的代码应该如何写，**因为定义target在[left, right]区间，所以有如下两点：**
+
+- while (left <= right) 要使用 <= ，因为left == right是有意义的，所以使用 <=
+- if (nums[mid] > target) right 要赋值为 mid - 1，因为当前这个nums[mid]一定不是target，那么接下来要查找的左区间结束下标位置就是 mid - 1
+
+例如在数组：1,2,3,4,7,9,10中查找元素2，如图所示：
+
+<img src="https://img-blog.csdnimg.cn/20210311153055723.jpg" alt="704.二分查找" style="zoom:50%;" />
+
+代码如下：
+
+```c++
+//二分查找
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        int left = 0;
+        int right = nums.size() - 1; // 定义target在左闭右闭的区间里，[left, right]
+        while (left <= right) { // 当left==right，区间[left, right]依然有效，所以用 <=
+            int middle = left + ((right - left) / 2);// 防止溢出 等同于(left + right)/2
+            if (nums[middle] > target) {
+                right = middle - 1; // target 在左区间，所以[left, middle - 1]
+            } else if (nums[middle] < target) {
+                left = middle + 1; // target 在右区间，所以[middle + 1, right]
+            } else { // nums[middle] == target
+                return middle; // 数组中找到目标值，直接返回下标
+            }
+        }
+        // 未找到目标值
+        return -1;
+    }
+};
+```
+
+总结：主要就是对区间的定义没有理解清楚，在循环中没有始终坚持根据查找区间的定义来做边界处理。区间的定义就是不变量，那么在循环中坚持根据查找区间的定义来做边界处理，就是循环不变量规则。
+
+### 二、移除元素
+
+[力扣题目链接](https://leetcode.cn/problems/remove-element/)
+
+给你一个数组 nums 和一个值 val，你需要 原地 移除所有数值等于 val 的元素，并返回移除后数组的新长度。
+
+不要使用额外的数组空间，你必须仅使用 O(1) 额外空间并**原地**修改输入数组。
+
+元素的顺序可以改变。你不需要考虑数组中超出新长度后面的元素。
+
+示例 1: 给定 nums = [3,2,2,3], val = 3, 函数应该返回新的长度 2, 并且 nums 中的前两个元素均为 2。 你不需要考虑数组中超出新长度后面的元素。
+
+示例 2: 给定 nums = [0,1,2,2,3,0,4,2], val = 2, 函数应该返回新的长度 5, 并且 nums 中的前五个元素为 0, 1, 3, 0, 4。
+
+**你不需要考虑数组中超出新长度后面的元素。**
+
+#### 1.暴力解法
+
+这个题目暴力的解法就是两层for循环，一个for循环遍历数组元素 ，第二个for循环更新数组。
+
+删除过程如下：
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gntrc7x9tjg30du09m1ky.gif" alt="27.移除元素-暴力解法" style="zoom: 80%;" />
+
+代码如下：
+
+```cpp
+// 时间复杂度：O(n^2)
+// 空间复杂度：O(1)
+class Solution {
+public:
+    int removeElement(vector<int>& nums, int val) {
+        int size = nums.size();
+        for (int i = 0; i < size; i++) {
+            if (nums[i] == val) { // 发现需要移除的元素，就将数组集体向前移动一位
+                for (int j = i + 1; j < size; j++) {
+                    nums[j - 1] = nums[j];
+                }
+                i--; // 因为下标i以后的数值都向前移动了一位，所以i也向前移动一位
+                size--; // 此时数组的大小-1
+            }
+        }
+        return size;
+
+    }
+};
+```
+
+- 时间复杂度：O(n^2)
+- 空间复杂度：O(1)
+
+#### 2.双指针
+
+双指针法（快慢指针法）： **通过一个快指针和慢指针在一个for循环下完成两个for循环的工作。**
+
+定义快慢指针
+
+- 快指针：寻找新数组的元素 ，新数组就是不含有目标元素的数组
+- 慢指针：指向更新 新数组下标的位置
+
+很多同学这道题目做的很懵，就是不理解 快慢指针究竟都是什么含义，所以一定要明确含义，后面的思路就更容易理解了。
+
+删除过程如下：
+
+![27.移除元素-双指针法](https://tva1.sinaimg.cn/large/008eGmZEly1gntrds6r59g30du09mnpd.gif)
+
+**双指针法（快慢指针法）在数组和链表的操作中是非常常见的，很多考察数组、链表、字符串等操作的面试题，都使用双指针法。**
+
+后续都会一一介绍到，本题代码如下：
+
+```cpp
+// 时间复杂度：O(n)
+// 空间复杂度：O(1)
+class Solution {
+public:
+    int removeElement(vector<int>& nums, int val) {
+        int slowIndex = 0;
+        for (int fastIndex = 0; fastIndex < nums.size(); fastIndex++) {
+            if (val != nums[fastIndex]) {
+                nums[slowIndex++] = nums[fastIndex];
+            }
+        }
+        return slowIndex;
+    }
+};
+```
+
+注意这些实现方法并没有改变元素的相对位置！
+
+- 时间复杂度：O(n)
+- 空间复杂度：O(1)
+
+
+
 ## 二叉树
 
 <img src="https://img-blog.csdnimg.cn/20210219190809451.png" alt="二叉树大纲" style="zoom:50%;" />
