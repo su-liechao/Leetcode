@@ -146,6 +146,261 @@ public:
 - 时间复杂度：O(n)
 - 空间复杂度：O(1)
 
+### 三、有序数组的平方
+
+[力扣题目链接](https://leetcode.cn/problems/squares-of-a-sorted-array/)
+
+给你一个按 非递减顺序 排序的整数数组 nums，返回 每个数字的平方 组成的新数组，要求也按 非递减顺序 排序。
+
+示例 1： 输入：nums = [-4,-1,0,3,10] 输出：[0,1,9,16,100] 解释：平方后，数组变为 [16,1,0,9,100]，排序后，数组变为 [0,1,9,16,100]
+
+示例 2： 输入：nums = [-7,-3,2,3,11] 输出：[4,9,9,49,121]
+
+#### 1.暴力排序
+
+最直观的想法，莫过于：每个数平方之后，排个序，美滋滋，代码如下：
+
+```cpp
+class Solution {
+public:
+    vector<int> sortedSquares(vector<int>& A) {
+        for (int i = 0; i < A.size(); i++) {
+            A[i] *= A[i];
+        }
+        sort(A.begin(), A.end()); // 快速排序
+        return A;
+    }
+};
+```
+
+这个时间复杂度是 O(n + nlogn)， 可以说是O(nlogn)的时间复杂度，但为了和下面双指针法算法时间复杂度有鲜明对比，我记为 O(n + nlog n)。
+
+#### 2.双指针
+
+数组其实是有序的， 只不过负数平方之后可能成为最大数了。
+
+那么数组平方的最大值就在数组的两端，不是最左边就是最右边，不可能是中间。
+
+此时可以考虑双指针法了，i指向起始位置，j指向终止位置。
+
+定义一个新数组result，和A数组一样的大小，让k指向result数组终止位置。
+
+如果`A[i] * A[i] < A[j] * A[j]` 那么`result[k--] = A[j] * A[j];` 。
+
+如果`A[i] * A[i] >= A[j] * A[j]` 那么`result[k--] = A[i] * A[i];` 。
+
+如动画所示：
+
+![img](https://code-thinking.cdn.bcebos.com/gifs/977.%E6%9C%89%E5%BA%8F%E6%95%B0%E7%BB%84%E7%9A%84%E5%B9%B3%E6%96%B9.gif)
+
+不难写出如下代码：
+
+```cpp
+class Solution {
+public:
+    vector<int> sortedSquares(vector<int>& A) {
+        int k = A.size() - 1;
+        vector<int> result(A.size(), 0);
+        for (int i = 0, j = A.size() - 1; i <= j;) { // 注意这里要i <= j，因为最后要处理两个元素
+            if (A[i] * A[i] < A[j] * A[j])  {
+                result[k--] = A[j] * A[j];
+                j--;
+            }
+            else {
+                result[k--] = A[i] * A[i];
+                i++;
+            }
+        }
+        return result;
+    }
+};
+```
+
+此时的时间复杂度为O(n)，相对于暴力排序的解法O(n + nlog n)还是提升不少的。
+
+### 四、长度最小的子数组
+
+[力扣题目链接](https://leetcode.cn/problems/minimum-size-subarray-sum/)
+
+给定一个含有 n 个正整数的数组和一个正整数 s ，找出该数组中满足其和 ≥ s 的长度最小的 连续 子数组，并返回其长度。如果不存在符合条件的子数组，返回 0。
+
+示例：
+
+输入：s = 7, nums = [2,3,1,2,4,3] 输出：2 解释：子数组 [4,3] 是该条件下的长度最小的子数组。
+
+#### 1.暴力枚举所以可能区间
+
+这道题目暴力解法当然是 两个for循环，然后不断的寻找符合条件的子序列，时间复杂度很明显是**O(n^2)**。
+
+代码如下：
+
+```c++
+//暴力枚举
+class Solution {
+public:
+    int minSubArrayLen(int target, vector<int>& nums) {
+        int ans = INT_MAX;
+        for(int left = 0; left < nums.size(); left++) {
+            int sum = 0;
+            for(int right = left; right < nums.size(); right++) {
+                sum += nums[right];
+                if(sum >= target) {
+                    ans = min(ans, right - left + 1);
+                    break;
+                }
+            }
+        }
+        return ans == INT_MAX ? 0 : ans;
+    }
+};
+```
+
+- 时间复杂度：O(n^2)
+- 空间复杂度：O(1)
+
+后面力扣更新了数据，暴力解法已经超时了。
+
+#### 2.滑动窗口(双指针)
+
+滑动窗口的起始位置如何移动呢？
+
+这里还是以题目中的示例来举例，s=7， 数组是 2，3，1，2，4，3，来看一下查找的过程：
+
+<img src="https://code-thinking.cdn.bcebos.com/gifs/209.%E9%95%BF%E5%BA%A6%E6%9C%80%E5%B0%8F%E7%9A%84%E5%AD%90%E6%95%B0%E7%BB%84.gif" alt="209.长度最小的子数组" style="zoom:50%;" />
+
+最后找到 4，3 是最短距离。
+
+其实从动画中可以发现滑动窗口也可以理解为**双指针法**的一种！只不过这种解法更像是一个窗口的移动，所以叫做滑动窗口更适合一些。
+
+在本题中实现滑动窗口，主要确定如下三点：
+
+- 窗口内是什么？
+- 如何移动窗口的起始位置？
+- 如何移动窗口的结束位置？
+
+窗口就是 满足其和 ≥ s 的长度最小的 连续 子数组。
+
+窗口的起始位置如何移动：如果当前窗口的值大于s了，窗口就要向前移动了（也就是该缩小了）。
+
+窗口的结束位置如何移动：窗口的结束位置就是遍历数组的指针，也就是for循环里的索引。
+
+解题的关键在于 窗口的起始位置如何移动，如图所示：
+
+<img src="https://img-blog.csdnimg.cn/20210312160441942.png" alt="leetcode_209" style="zoom:50%;" />
+
+可以发现**滑动窗口的精妙之处在于根据当前子序列和大小的情况，不断调节子序列的起始位置。从而将O(n^2)暴力解法降为O(n)。**
+
+
+
+思路: 定义两个指针 `left` 和 `right` 分别表示子数组（滑动窗口窗口）的开始位置和结束位置，维护变量 `sum` 存储子数组中的元素和（即从`nums[left]` 到 `nums[right]` 的元素和）。
+
+初始状态下，`left` 和 `right` 都指向下标 0，`sum` 的值为 0。
+
+每一轮迭代，将 `nums[right]` 加到 `sum`，如果 `sum≥s`，则更新子数组的最小长度（此时子数组的长度是 `right - left + 1`），然后将`nums[left]` 从 `sum` 中减去并将 `left` 右移，直到 `sum<s`，在此过程中同样更新子数组的最小长度。在每一轮迭代的最后，将 `right` 右移。
+
+完整代码：
+
+```c++
+// 滑窗(双指针)
+class Solution {
+public:
+    int minSubArrayLen(int target, vector<int>& nums) {
+        int sum = 0;
+        int SubLen = INT_MAX;
+        int left = 0;   //左端点
+        for(int right = 0; right < nums.size(); right++) {  //right右端点
+            sum += nums[right];
+            while(sum >= target) {
+                SubLen = min(right - left + 1, SubLen);
+                sum -= nums[left];
+                left ++;    //左端点往右移动一位
+            }
+        }
+        return SubLen == INT_MAX ? 0 : SubLen;
+    }
+};
+```
+
+### 五、螺旋矩阵II
+
+[力扣题目链接(opens new window)](https://leetcode.cn/problems/spiral-matrix-ii/)
+
+给定一个正整数 n，生成一个包含 1 到 n^2 所有元素，且元素按顺时针顺序螺旋排列的正方形矩阵。
+
+示例:
+
+输入: 3 输出: [ [ 1, 2, 3 ], [ 8, 9, 4 ], [ 7, 6, 5 ] ]
+
+思路：要如何画出这个螺旋排列的正方形矩阵呢？相信很多同学刚开始做这种题目的时候，上来就是一波判断猛如虎。
+
+结果运行的时候各种问题，然后开始各种修修补补，最后发现改了这里那里有问题，改了那里这里又跑不起来了。
+
+大家还记得我们在这篇文章[数组：每次遇到二分法，都是一看就会，一写就废 (opens new window)](https://programmercarl.com/0704.二分查找.html)中讲解了二分法，提到如果要写出正确的二分法一定要坚持**循环不变量原则**。而求解本题依然是要坚持循环不变量原则。
+
+模拟顺时针画矩阵的过程:
+
+- 填充上行从左到右
+- 填充右列从上到下
+- 填充下行从右到左
+- 填充左列从下到上
+
+由外向内一圈一圈这么画下去。
+
+​	可以发现这里的边界条件非常多，在一个循环中，如此多的边界条件，如果不按照固定规则来遍历，那就是**一进循环深似海，从此offer是路人**。
+
+这里一圈下来，我们要画每四条边，这四条边怎么画，每画一条边都要坚持一致的左闭右开，或者左开右闭的原则，这样这一圈才能按照统一的规则画下来。
+
+那么我按照左闭右开的原则，来画一圈，大家看一下：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220922102236.png" alt="img" style="zoom:33%;" />
+
+这里每一种颜色，代表一条边，我们遍历的长度，可以看出每一个拐角处的处理规则，拐角处让给新的一条边来继续画。
+
+这也是坚持了每条边左闭右开的原则。
+
+一些同学做这道题目之所以一直写不好，**代码越写越乱**。
+
+就是因为在画每一条边的时候，一会左开右闭，一会左闭右闭，一会又来左闭右开，岂能不乱。
+
+代码如下，已经详细注释了每一步的目的，可以看出while循环里判断的情况是很多的，代码里处理的原则也是统一的左闭右开。
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> generateMatrix(int n) {
+        int start_x ,start_y = 0;
+        int offset = 1;
+        int loop_time = n / 2;
+        int count = 1;  //赋值用
+        int i, j;
+        vector<vector<int>> ret(n, vector<int>(n ,0));
+        while(loop_time--) {
+            // i = start_x;
+            // j = start_y;
+            for(j = start_y; j < n - offset; j++) {   //top
+                ret[start_x][j] = count++;
+            }
+            for(i = start_x; i < n - offset; i++) {   //right
+                ret[i][j] = count++;                  //j为top结束时的值
+            }
+            for(; j > start_y; j--) {   //bottom 其中j的初始值为top结束时的值
+                ret[i][j] = count++;
+            }
+            for(; i > start_x; i--) {   //left 其中j的初始值为top结束时的值
+                ret[i][j] = count++;
+            }
+            start_x++;
+            start_y++;
+            offset++;
+        }
+        if(n % 2 != 0) ret[n / 2][n / 2] = count;
+        return ret;
+    }
+};
+```
+
+
+
 
 
 ## 二叉树
