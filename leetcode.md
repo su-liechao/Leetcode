@@ -399,9 +399,1106 @@ public:
 };
 ```
 
+## 链表
+
+### 一、移除链表元素
+
+[力扣题目链接](https://leetcode.cn/problems/remove-linked-list-elements/)
+
+题意：删除链表中等于给定值 val 的所有节点。
+
+示例 1：
+输入：head = [1,2,6,3,4,5,6], val = 6
+输出：[1,2,3,4,5]
+
+示例 2：
+输入：head = [], val = 1
+输出：[]
+
+示例 3：
+输入：head = [7,7,7,7], val = 7
+输出：[]
+
+思路：
+
+这里以链表 1 4 2 4 来举例，移除元素4。
+
+<img src="https://img-blog.csdnimg.cn/20210316095351161.png" alt="203_链表删除元素1" style="zoom:33%;" />
+
+如果使用C，C++编程语言的话，不要忘了还要从内存中删除这两个移除的节点， 清理节点内存之后如图：
+
+<img src="https://img-blog.csdnimg.cn/20210316095418280.png" alt="203_链表删除元素2" style="zoom:33%;" />
+
+其实**可以设置一个虚拟头结点**，这样原链表的所有节点就都可以按照统一的方式进行移除了。
+
+来看看如何设置一个虚拟头。依然还是在这个链表中，移除元素1。
+
+<img src="https://img-blog.csdnimg.cn/20210316095619221.png" alt="203_链表删除元素6" style="zoom:33%;" />
+
+这里来给链表添加一个虚拟头结点为新的头结点，此时要移除这个旧头结点元素1。
+
+这样是不是就可以使用和移除链表其他节点的方式统一了呢？
+
+来看一下，如何移除元素1 呢，还是熟悉的方式，然后从内存中删除元素1。
+
+最后呢在题目中，return 头结点的时候，别忘了 `return help->next;`， 这才是新的头结点
+
+```c++
+class Solution {                                                                                                                 
+public:
+    ListNode* removeElements(ListNode* head, int val) {
+        ListNode* help = new ListNode(0, head);		//help为辅助节点，将虚拟头结点指向head，这样方面后面做删除操作
+        ListNode* cur = help;
+        while(cur->next != nullptr) {
+            if(cur->next->val == val) {
+                cur->next = cur->next->next;
+            } else{
+                cur = cur->next;
+            }
+        }
+        return help->next;
+    }
+};
+```
+
+### 二、设计链表
+
+[力扣题目链接](https://leetcode.cn/problems/design-linked-list/)
+
+题意：
+
+在链表类中实现这些功能：
+
+- get(index)：获取链表中第 index 个节点的值。如果索引无效，则返回-1。
+- addAtHead(val)：在链表的第一个元素之前添加一个值为 val 的节点。插入后，新节点将成为链表的第一个节点。
+- addAtTail(val)：将值为 val 的节点追加到链表的最后一个元素。
+- addAtIndex(index,val)：在链表中的第 index 个节点之前添加值为 val 的节点。如果 index 等于链表的长度，则该节点将附加到链表的末尾。如果 index 大于链表长度，则不会插入节点。如果index小于0，则在头部插入节点。
+- deleteAtIndex(index)：如果索引 index 有效，则删除链表中的第 index 个节点。
+
+<img src="https://img-blog.csdnimg.cn/20200814200558953.png" alt="707示例" style="zoom:50%;" />
+
+```c++
+class MyLinkedList {
+public:
+    struct Node{
+        int value;
+        Node* next;
+        Node() : value(0), next(nullptr){}
+        Node(int x) : value(x), next(nullptr){}
+    };
+    
+    MyLinkedList() {    //初始化
+        head = new Node(0);
+        size = 0;
+    }
+    
+    int get(int index) {
+        if(index < 0 || index >= size) return -1;
+        Node* cur = head->next;
+        while(index--) {
+            cur = cur->next;
+        }
+        return cur->value;
+    }
+
+    void addAtHead(int val) {
+        Node* node = new Node(val);
+        node->next = head->next;
+        head->next = node;
+        size++;
+    }
+
+    void addAtTail(int val) {
+        Node* cur = head;
+        Node* node = new Node(val);
+        while(cur->next != nullptr) {
+            cur = cur->next;
+        }// 遍历到尾节点
+        cur->next = node;
+        size++;
+    }
+    
+    void addAtIndex(int index, int val) {
+        if(index == size) addAtTail(val);
+        else if(index <= 0) {
+            addAtHead(val);
+        }
+        else if(index > size) return;
+        else {
+            Node* cur = head;
+            Node* node = new Node(val);
+            while(index--) cur = cur->next;
+            node->next = cur->next;
+            cur->next = node;
+            size++;
+        }
+    }
+    
+    void deleteAtIndex(int index) {
+        if(index < 0 || index >= size) return ; //不在单链表的索引范围
+        Node *cur = head;
+        while(index--) cur = cur->next;
+        cur->next = cur->next->next;
+        size--;
+    }
+private:
+    Node* head;
+    int size;
+};
+```
+
+### 三、反转链表
+
+[力扣题目链接](https://leetcode.cn/problems/reverse-linked-list/)
+
+题意：反转一个单链表。
+
+示例: 输入: 1->2->3->4->5->NULL 输出: 5->4->3->2->1->NULL
+
+<img src="https://img-blog.csdnimg.cn/20210218090901207.png" alt="206_反转链表" style="zoom:50%;" />
+
+#### 1.迭代
+
+​	拿示例中的链表来举例，如动画所示：（纠正：动画应该是先移动pre，在移动cur）
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gnrf1oboupg30gy0c44qp.gif" alt="img" style="zoom:50%;" />
+
+```c++
+//迭代
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        ListNode* pre = nullptr;
+        ListNode* cur = head;
+        while(cur) {
+            ListNode* next = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = next;
+        }
+        return pre;
+    }
+};
+```
+
+#### 2.递归
+
+1. 递归上来就先写终止条件：如果head为空或者head.next为空，返回head
+
+2. 新头结点newHead指向尾结点，此处进入递归，递归一直到遍历到尾结点时才会返回
+3. 每一层递归，该层递归中的head会让下一个节点指向自己，head.next.next = head；然后head自己指向空。以此达到反转的目的。
+4. 返回新链表的头结点newHead
+
+<img src="https://pic.leetcode-cn.com/1616764754-bfxwfc-%E5%8F%8D%E8%BD%AC%E9%93%BE%E8%A1%A8-%E9%80%92%E5%BD%92%E8%BF%87%E7%A8%8B.jpg" alt="反转链表-递归过程.jpg" style="zoom:33%;" />
+
+```c++
+//递归
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        if(!head || !head->next) {
+            return head;
+        }
+        ListNode* new_head = reverseList(head->next);
+        head->next->next = head;
+        head->next = nullptr;
+        return new_head;
+    }
+};
+```
+
+### 四、删除链表倒数第N个节点
+
+```c++
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        ListNode* help = new ListNode(0, head);//虚拟节点
+        ListNode* slow = help;
+        ListNode* fast = help;
+        while(n--) { //fast指针先走n步
+            fast = fast->next;
+        }
+        while(fast->next != nullptr) {
+            fast = fast->next;
+            slow = slow->next;
+        }
+        slow->next = slow->next->next;
+        return help->next;
+    }
+};
+```
+
+### 五、链表相交
+
+[力扣题目链接](https://leetcode.cn/problems/intersection-of-two-linked-lists-lcci/)
+
+给你两个单链表的头节点 headA 和 headB ，请你找出并返回两个单链表相交的起始节点。如果两个链表没有交点，返回 null 。
+
+图示两个链表在节点 c1 开始相交：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20211219221657.png" alt="img" style="zoom:50%;" />
+
+题目数据 保证 整个链式结构中不存在环。
+
+注意，函数返回结果后，链表必须 保持其原始结构 。
+
+示例 1：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20211219221723.png" alt="img" style="zoom:50%;" />
+
+示例 2：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20211219221749.png" alt="img" style="zoom:50%;" />
+
+思路：参考[面试题 02.07. 链表相交（双指针，清晰图解） - 链表相交 - 力扣（LeetCode）](https://leetcode.cn/problems/intersection-of-two-linked-lists-lcci/solution/mian-shi-ti-0207-lian-biao-xiang-jiao-sh-b8hn/)
+
+完整代码如下：
+
+```c++
+class Solution {
+public:
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) {
+        ListNode* A = headA;
+        ListNode* B = headB;
+        while(A != B) {
+            A = A != NULL ? A->next : headB;
+            B = B != NULL ? B->next : headA;
+        }
+        return A;
+    }
+};
+```
+
+### 七、环形链表II
+
+[力扣题目链接](https://leetcode.cn/problems/linked-list-cycle-ii/)
+
+题意： 给定一个链表，返回链表开始入环的第一个节点。 如果链表无环，则返回 null。
+
+为了表示给定链表中的环，使用整数 pos 来表示链表尾连接到链表中的位置（索引从 0 开始）。 如果 pos 是 -1，则在该链表中没有环。
+
+**说明**：不允许修改给定的链表。
+
+<img src="https://img-blog.csdnimg.cn/20200816110112704.png" alt="循环链表" style="zoom:50%;" />
+
+思路：主要考察两知识点：
+
+- 判断链表是否环
+- 如果有环，如何找到这个环的入口
+
+#### 1.判断链表是否有环
+
+可以使用快慢指针法，分别定义 fast 和 slow 指针，从头结点出发，fast指针每次移动两个节点，slow指针每次移动一个节点，如果 fast 和 slow指针在途中相遇 ，说明这个链表有环。
+
+为什么fast 走两个节点，slow走一个节点，有环的话，一定会在环内相遇呢，而不是永远的错开呢
+
+首先第一点：**fast指针一定先进入环中，如果fast指针和slow指针相遇的话，一定是在环中相遇，这是毋庸置疑的。**
+
+那么来看一下，**为什么fast指针和slow指针一定会相遇呢？**
+
+可以画一个环，然后让 fast指针在任意一个节点开始追赶slow指针。
+
+会发现最终都是这种情况， 如下图：
+
+<img src="https://img-blog.csdnimg.cn/20210318162236720.png" alt="142环形链表1" style="zoom:67%;" />
+
+fast和slow各自再走一步， fast和slow就相遇了
+
+这是因为fast是走两步，slow是走一步，**其实相对于slow来说，fast是一个节点一个节点的靠近slow的**，所以fast一定可以和slow重合。
+
+动画如下：
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1goo4xglk9yg30fs0b6u0x.gif" alt="141.环形链表" style="zoom: 80%;" />
+
+#### 2.如果有环，如何找到这个环的入口
+
+**此时已经可以判断链表是否有环了，那么接下来要找这个环的入口了。**
+
+假设从头结点到环形入口节点 的节点数为x。 环形入口节点到 fast指针与slow指针相遇节点 节点数为y。 从相遇节点 再到环形入口节点节点数为 z。 如图所示：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220925103433.png" alt="img" style="zoom: 50%;" />
+
+那么相遇时： slow指针走过的节点数为: `x + y`， fast指针走过的节点数：`x + y + n (y + z)`，n为fast指针在环内走了n圈才遇到slow指针， （y+z）为 一圈内节点的个数A。
+
+因为fast指针是一步走两个节点，slow指针一步走一个节点， 所以 fast指针走过的节点数 = slow指针走过的节点数 * 2：
+
+```
+(x + y) * 2 = x + y + n (y + z)
+```
+
+两边消掉一个（x+y）: `x + y = n (y + z)`
+
+因为要找环形的入口，那么要求的是x，因为x表示 头结点到 环形入口节点的的距离。
+
+所以要求x ，将x单独放在左面：`x = n (y + z) - y` ,
+
+再从n(y+z)中提出一个 （y+z）来，整理公式之后为如下公式：`x = (n - 1) (y + z) + z` 注意这里n一定是大于等于1的，因为 fast指针至少要多走一圈才能相遇slow指针。
+
+这个公式说明什么呢？
+
+先拿n为1的情况来举例，意味着fast指针在环形里转了一圈之后，就遇到了 slow指针了。
+
+当 n为1的时候，公式就化解为 `x = z`，
+
+这就意味着，**从头结点出发一个指针，从相遇节点 也出发一个指针，这两个指针每次只走一个节点， 那么当这两个指针相遇的时候就是 环形入口的节点**。
+
+也就是在相遇节点处，定义一个指针index1，在头结点处定一个指针index2。
+
+让index1和index2同时移动，每次移动一个节点， 那么他们相遇的地方就是 环形入口的节点。
+
+动画如下：
+
+![142.环形链表II（求入口）](https://tva1.sinaimg.cn/large/008eGmZEly1goo58gauidg30fw0bi4qr.gif)
+
+那么 n如果大于1是什么情况呢，就是fast指针在环形转n圈之后才遇到 slow指针。
+
+其实这种情况和n为1的时候 效果是一样的，一样可以通过这个方法找到 环形的入口节点，只不过，index1 指针在环里 多转了(n-1)圈，然后再遇到index2，相遇点依然是环形的入口节点。
+
+代码如下：
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        ListNode* fast = head;
+        ListNode* slow = head;
+        while(fast != NULL && fast->next != NULL) {
+            slow = slow->next;
+            fast = fast->next->next;
+            // 快慢指针相遇，此时从head 和 相遇点，同时查找直至相遇
+            if (slow == fast) {
+                ListNode* index1 = fast;
+                ListNode* index2 = head;
+                while (index1 != index2) {
+                    index1 = index1->next;
+                    index2 = index2->next;
+                }
+                return index2; // 返回环的入口
+            }
+        }
+        return NULL;
+    }
+};
+```
+
+#### 3.补充
+
+在推理过程中，大家可能有一个疑问就是：**为什么第一次在环中相遇，slow的 步数 是 x+y 而不是 x + 若干环的长度 + y 呢？**
+
+<img src="https://img-blog.csdnimg.cn/20210318165123581.png" alt="142环形链表5" style="zoom: 50%;" />
+
+首先slow进环的时候，fast一定是先进环来了。
+
+如果slow进环入口，fast也在环入口，那么把这个环展开成直线，就是如下图的样子：
+
+<img src="https://img-blog.csdnimg.cn/2021031816503266.png" alt="142环形链表3" style="zoom:50%;" />
+
+可以看出如果slow 和 fast同时在环入口开始走，一定会在环入口3相遇，slow走了一圈，fast走了两圈。
+
+重点来了，slow进环的时候，fast一定是在环的任意一个位置，如图：
+
+<img src="https://img-blog.csdnimg.cn/2021031816515727.png" alt="142环形链表4" style="zoom:50%;" />
+
+那么fast指针走到环入口3的时候，已经走了k + n 个节点，slow相应的应该走了(k + n) / 2 个节点。
+
+因为k是小于n的（图中可以看出），所以(k + n) / 2 一定小于n。
+
+**也就是说slow一定没有走到环入口3，而fast已经到环入口3了**。
+
+这说明什么呢？
+
+**在slow开始走的那一环已经和fast相遇了**。
+
+为什么fast不能跳过去呢？ 在刚刚已经说过一次了，**fast相对于slow是一次移动一个节点，所以不可能跳过去**。
+
+## 哈希表
+
+### 常见的三种哈希结构
+
+当我们想使用哈希法来解决问题的时候，我们一般会选择如下三种数据结构。
+
+- 数组
+- set （集合）
+- map(映射)
+
+这里数组就没啥可说的了，我们来看一下set。
+
+在C++中，set 和 map 分别提供以下三种数据结构，其底层实现以及优劣如下表所示：
+
+| 集合               | 底层实现 | 是否有序 | 数值是否可以重复 | 能否更改数值 | 查询效率 | 增删效率 |
+| ------------------ | -------- | -------- | ---------------- | ------------ | -------- | -------- |
+| std::set           | 红黑树   | 有序     | 否               | 否           | O(log n) | O(log n) |
+| std::multiset      | 红黑树   | 有序     | **是**           | 否           | O(logn)  | O(logn)  |
+| std::unordered_set | 哈希表   | 无序     | 否               | 否           | O(1)     | O(1)     |
+
+std::unordered_set底层实现为哈希表，std::set 和std::multiset 的底层实现是红黑树，**红黑树是一种平衡二叉搜索树**，所以key值是有序的，但key不可以修改，改动key值会导致整棵树的错乱，所以只能删除和增加。
+
+| 映射               | 底层实现 | 是否有序 | 数值是否可以重复 | 能否更改数值 | 查询效率 | 增删效率 |
+| ------------------ | -------- | -------- | ---------------- | ------------ | -------- | -------- |
+| std::map           | 红黑树   | key有序  | key不可重复      | key不可修改  | O(logn)  | O(logn)  |
+| std::multimap      | 红黑树   | key有序  | **key可重复**    | key不可修改  | O(log n) | O(log n) |
+| std::unordered_map | 哈希表   | key无序  | key不可重复      | key不可修改  | O(1)     | O(1)     |
+
+std::unordered_map 底层实现为哈希表，std::map 和std::multimap 的底层实现是红黑树。同理，std::map 和std::multimap 的key也是有序的（这个问题也经常作为面试题，考察对语言容器底层的理解）。
+
+当我们要使用集合来解决哈希问题的时候，优先使用unordered_set，因为它的查询和增删效率是最优的，如果需要集合是有序的，那么就用set，如果要求不仅有序还要有重复数据的话，那么就用multiset。
+
+那么再来看一下map ，在map 是一个<key,  value> 的数据结构，map中，对key是有限制，对value没有限制的，因为key的存储方式使用红黑树实现的。
+
+这里在说一下，一些C++的经典书籍上, 例如STL源码剖析，说到了hash_se,  hash_map，这个与unordered_set，unordered_map又有什么关系呢？
+
+实际上功能都是一样一样的， 但是unordered_set在C++11的时候被引入标准库了，而hash_set并没有，所以建议还是使用unordered_set比较好，这就好比一个是官方认证的，hash_set，hash_map 是C++11标准之前民间高手自发造的轮子。
+
+![哈希表6](https://img-blog.csdnimg.cn/20210104235134572.png)
+
+**c++中map与unordered_map的区别**
+运行效率方面：unordered_map最高，而map效率较低但 提供了稳定效率和有序的序列。
+占用内存方面：map内存占用略低，unordered_map内存占用略高,而且是线性成比例的。
+**1 头文件**
+map: #include < map >
+unordered_map: #include < unordered_map >
+
+**2** **内部实现机理**
+map： **map内部实现了一个红黑树**，该结构具有自动排序的功能，因此map内部的所有元素都是有序的，红黑树的每一个节点都代表着map的一个元素，因此，对于map进行的查找，删除，添加等一系列的操作都相当于是对红黑树进行这样的操作，故红黑树的效率决定了map的效率。
+unordered_map: **unordered_map内部实现了一个哈希表**，因此其元素的排列顺序是杂乱的，无序的
+
+**3 优点、缺点、使用场景**
+map
+优点：有序性，这是map结构最大的优点，其元素的有序性在很多应用中都会简化很多的操作。红黑树，内部实现一个红黑书使得map的很多操作在lgn的时间复杂度下就可以实现，**因此效率非常的高。**
+
+缺点：**空间占用率高**，因为map内部实现了红黑树，虽然提高了运行效率，但是**因为每一个节点都需要额外保存父节点，孩子节点以及红/黑性质**，使得每一个节点都占用大量的空间
+
+适用处：对于那些有顺序要求的问题，用map会更高效一些。
+
+unordered_map
+优点：**内部实现了哈希表**，因此其**查找速度是常量级别的**。
+
+缺点：哈希表的建立比较耗费时间
+
+**总结**：
+
+**当我们遇到了要快速判断一个元素是否出现集合里的时候，就要考虑哈希法**。
+
+但是哈希法也是**牺牲了空间换取了时间**，因为我们要使用额外的数组，set或者是map来存放数据，才能实现快速的查找。
+
+**如果在做面试题目的时候遇到需要判断一个元素是否出现过的场景也应该第一时间想到哈希法！**
+
+### 一、有效的字母异位词
+
+[力扣题目链接](https://leetcode.cn/problems/valid-anagram/)
+
+给定两个字符串 s 和 t ，编写一个函数来判断 t 是否是 s 的字母异位词。
+
+示例 1: 输入: s = "anagram", t = "nagaram" 输出: true
+
+示例 2: 输入: s = "rat", t = "car" 输出: false
+
+**说明:** 你可以假设字符串只包含小写字母
+
+#### 1.排序
+
+```c++
+class Solution {
+public:
+    bool isAnagram(string s, string t) {
+        if(s.size() != t.size()) return false;
+        sort(s.begin(), s.end());
+        sort(t.begin(), t.end());
+        
+        return s == t;
+    }
+};
+```
+
+复杂度分析
+
+时间复杂度：O(nlogn)，其中 n 为 s 的长度。排序的时间复杂度为 O(nlogn)，比较两个字符串是否相等时间复杂度为 O(n)，因此总体时间复杂度为 O(nlog n+n)=O(nlogn)。
+
+空间复杂度：O(logn)。排序需要 O(logn) 的空间复杂度。
+
+#### 2.哈希表
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    bool isAnagram(string s, string t) {
+        if(s.size() != t.size()) return false;
+        unordered_map<char, int> umap;
+        for(int i = 0; i < s.size(); i++) {
+            umap[s[i]]++;    //s字符串中出现的字母加1
+            umap[t[i]]--;    //t字符串中出现的字母减1
+        }
+        for(unordered_map<char, int>::iterator it = umap.begin(); it != umap.end(); it++) {//end()指向的是最后一个元素的下一个位置
+            if(it->second != 0) return false;
+        }
+        return true;
+    }
+};
+```
+
+### 二、两个数组的交集
+
+[力扣题目链接](https://leetcode.cn/problems/intersection-of-two-arrays/)
+
+题意：给定两个数组，编写一个函数来计算它们的交集。
+
+<img src="https://img-blog.csdnimg.cn/20200818193523911.png" alt="349. 两个数组的交集" style="zoom:50%;" />
+
+**说明：** 输出结果中的每个元素一定是唯一的。 我们可以不考虑输出结果的顺序。
 
 
 
+这道题目，主要要**学会使用一种哈希数据结构：unordered_set**，这个数据结构可以解决很多类似的问题。
+
+注意题目特意说明：**输出结果中的每个元素一定是唯一的，也就是说输出的结果的去重的， 同时可以不考虑输出结果的顺序**
+
+这道题用暴力的解法时间复杂度是O(n^2)，那来看看使用哈希法进一步优化。
+
+那么用数组来做哈希表也是不错的选择，例如[242. 有效的字母异位词](https://programmercarl.com/0242.有效的字母异位词.html)
+
+但是要注意，**使用数组来做哈希的题目，是因为题目都限制了数值的大小。**
+
+而这道题目没有限制数值的大小，就无法使用数组来做哈希表了。
+
+**而且如果哈希值比较少、特别分散、跨度非常大，使用数组就造成空间的极大浪费。**
+
+此时就要使用另一种结构体了，set ，关于set，C++ 给提供了如下三种可用的数据结构：
+
+- std::set
+- std::multiset
+- std::unordered_set
+
+std::set和std::multiset底层实现都是红黑树，std::unordered_set的底层实现是哈希表， 使用unordered_set 读写效率是最高的，并不需要对数据进行排序，而且还不要让数据重复，所以选择unordered_set。
+
+思路如图所示：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220707173513.png" alt="set哈希法" style="zoom:50%;" />
+
+C++代码如下：
+
+```c++
+class Solution {
+public:
+    vector<int> intersection(vector<int>& nums1, vector<int>& nums2) {
+        unordered_set<int> s1(nums1.begin(), nums1.end());
+        unordered_set<int> result_set;
+        for(int i = 0; i < nums2.size(); i++) {
+            if(s1.find(nums2[i]) != s1.end()) {
+                //find()在 s1 容器中查找值为 val 的元素，如果成功找到，则返回指向该元素的双向迭代器；反之，则返回和 end() 方法一样的迭代器
+                result_set.insert(nums2[i]);
+            }
+        }
+        return vector<int>(result_set.begin(), result_set.end()); 
+    }
+};
+```
+
+### 三、快乐数
+
+[力扣题目链接](https://leetcode.cn/problems/happy-number/)
+
+编写一个算法来判断一个数 n 是不是快乐数。
+
+「快乐数」定义为：对于一个正整数，每一次将该数替换为它每个位置上的数字的平方和，然后重复这个过程直到这个数变为 1，也可能是 无限循环 但始终变不到 1。如果 可以变为 1，那么这个数就是快乐数。
+
+如果 n 是快乐数就返回 True ；不是，则返回 False 。
+
+**示例：**
+
+输入：19
+输出：true
+解释：
+1^2 + 9^2 = 82
+8^2 + 2^2 = 68
+6^2 + 8^2 = 100
+1^2 + 0^2 + 0^2 = 1
+
+思路：**使用 “快慢指针” 思想**
+
+1.找出循环：“快指针” 每次走两步，“慢指针” 每次走一步，当二者相等时，即为一个循环周期。
+
+2.此时，判断是不是因为 1 引起的循环，是的话就是快乐数，否则不是快乐数。
+
+```c++
+class Solution {
+public:
+    int bitSquareSum(int n) {
+        int sum = 0;
+        while(n > 0)
+        {
+            int bit = n % 10;
+            sum += bit * bit;
+            n = n / 10;
+        }
+        return sum;
+    }
+    
+    bool isHappy(int n) {
+        int slow = n, fast = n;
+        do{
+            slow = bitSquareSum(slow);
+            fast = bitSquareSum(fast);
+            fast = bitSquareSum(fast);
+        }while(slow != fast);
+        
+        return slow == 1;
+    }
+};
+```
+
+此题不建议用集合记录每次的计算结果来判断是否进入循环，因为这个集合可能大到无法存储。
+
+### 四、两数之和
+
+[力扣题目链接(opens new window)](https://leetcode.cn/problems/two-sum/)
+
+给定一个整数数组 nums 和一个目标值 target，请你在该数组中找出和为目标值的那 两个 整数，并返回他们的数组下标。
+
+你可以假设每种输入只会对应一个答案。但是，数组中同一个元素不能使用两遍。
+
+**示例:**
+
+给定 nums = [2, 7, 11, 15], target = 9
+
+因为 nums[0] + nums[1] = 2 + 7 = 9
+
+所以返回 [0, 1]
+
+#### 1.暴力枚举
+
+```c++
+//暴力枚举
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        vector<int> ret;
+        for(int i = 0; i < nums.size(); i++) {
+            for(int j = i + 1; j < nums.size(); j++) {
+                if(nums[i] + nums[j] == target) {
+                    ret.push_back(i);
+                    ret.push_back(j);
+                    return ret;
+                }
+            }
+        }
+        return ret;
+    }
+};
+```
+
+#### 2.哈希表
+
+​	**什么时候使用哈希法**，当我们需要查询一个元素是否出现过，或者一个元素是否在集合里的时候，就要第一时间想到哈希法。
+
+本题就需要一个集合来存放我们遍历过的元素，然后在遍历数组的时候去询问这个集合，某元素是否遍历过，也就是 是否出现在这个集合。
+
+那么我们就应该想到使用哈希法了。
+
+因为本题，我们不仅要知道元素有没有遍历过，还有知道这个元素对应的下标，**需要使用 key value结构来存放，key来存元素，value来存下标，那么使用map正合适**。
+
+再来看一下使用数组和set来做本题的局限。
+
+- 数组的大小是受限制的，而且如果元素很少，而哈希值太大会造成内存空间的浪费。
+- set是一个集合，里面放的元素只能是一个key，而两数之和这道题目，不仅要判断y是否存在而且还要记录y的下标位置，因为要返回x 和 y的下标。所以set 也不能用。
+
+此时就要选择另一种数据结构：map ，map是一种key value的存储结构，可以用key保存数值，用value在保存数值所在的下标。
+
+C++中map，有三种类型：
+
+| 映射               | 底层实现 | 是否有序 | 数值是否可以重复 | 能否更改数值 | 查询效率 | 增删效率 |
+| ------------------ | -------- | -------- | ---------------- | ------------ | -------- | -------- |
+| std::map           | 红黑树   | key有序  | key不可重复      | key不可修改  | O(log n) | O(log n) |
+| std::multimap      | 红黑树   | key有序  | key可重复        | key不可修改  | O(log n) | O(log n) |
+| std::unordered_map | 哈希表   | key无序  | key不可重复      | key不可修改  | O(1)     | O(1)     |
+
+std::unordered_map 底层实现为哈希表，std::map 和std::multimap 的底层实现是红黑树。
+
+同理，std::map 和std::multimap 的key也是有序的（这个问题也经常作为面试题，考察对语言容器底层的理解）。 
+
+**这道题目中并不需要key有序，选择std::unordered_map 效率更高！** 使用其他语言的录友注意了解一下自己所用语言的数据结构就行。
+
+接下来需要明确两点：
+
+- **map用来做什么**
+- **map中key和value分别表示什么**
+
+map目的用来存放我们访问过的元素，因为遍历数组的时候，需要记录我们之前遍历过哪些元素和对应的下表，这样才能找到与当前元素相匹配的（也就是相加等于target）
+
+接下来是map中key和value分别表示什么。
+
+这道题 我们需要 给出一个元素，判断这个元素是否出现过，如果出现过，返回这个元素的下标。
+
+那么判断元素是否出现，这个元素就要作为key，所以数组中的元素作为key，有key对应的就是value，value用来存下标。
+
+所以 map中的存储结构为 {key：数据元素，value：数组元素对应的下表}。
+
+在遍历数组的时候，只需要向map去查询是否有和目前遍历元素比配的数值，如果有，就找到的匹配对，如果没有，就把目前遍历的元素放进map中，因为map存放的就是我们访问过的元素。
+
+过程如下：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220711202638.png" alt="过程一" style="zoom:33%;" />
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220711202708.png" alt="过程二" style="zoom:33%;" />
+
+C++代码：
+
+```c++
+//哈希表
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> m;  //<num, index>
+        for(int i = 0; i < nums.size(); i++) {
+            int temp = target - nums[i];
+            auto iter = m.find(temp);
+            if(iter != m.end()) {
+                return {i, iter->second};
+            }
+            m.insert(pair<int, int>(nums[i], i));
+        }
+        return{};
+    }
+};
+```
+
+### 五、四数相加II
+
+[力扣题目链接](https://leetcode.cn/problems/4sum-ii/)
+
+给定四个包含整数的数组列表 A , B , C , D ,计算有多少个元组 (i, j, k, l) ，使得 A[i] + B[j] + C[k] + D[l] = 0。
+
+为了使问题简单化，所有的 A, B, C, D 具有相同的长度 N，且 0 ≤ N ≤ 500 。所有整数的范围在 -2^28 到 2^28 - 1 之间，最终结果不会超过 2^31 - 1 。
+
+**例如:**
+
+输入:
+
+- A = [ 1, 2]
+- B = [-2,-1]
+- C = [-1, 2]
+- D = [ 0, 2]
+
+输出:
+
+2
+
+**解释:**
+
+两个元组如下:
+
+1. (0, 0, 0, 1) -> A[0] + B[0] + C[0] + D[1] = 1 + (-2) + (-1) + 2 = 0
+2. (1, 1, 0, 0) -> A[1] + B[1] + C[0] + D[0] = 2 + (-1) + (-1) + 0 = 0
+
+
+
+**本题是使用哈希法的经典题目，而[0015.三数之和](https://programmercarl.com/0015.三数之和.html)，[0018.四数之和 ](https://programmercarl.com/0018.四数之和.html)并不合适使用哈希法**，因为三数之和和四数之和这两道题目使用哈希法在不超时的情况下做到对结果去重是很困难的，很有多细节需要处理。
+
+**而这道题目是四个独立的数组，只要找到A[i] + B[j] + C[k] + D[l] = 0就可以，不用考虑有重复的四个元素相加等于0的情况，所以相对于题目18. 四数之和，题目15.三数之和，还是简单了不少！**
+
+如果本题想难度升级：就是给出一个数组（而不是四个数组），在这里找出四个元素相加等于0，答案中不可以包含重复的四元组，大家可以思考一下，后续的文章我也会讲到的。
+
+本题解题步骤：
+
+1. 首先定义 一个unordered_map，key放a和b两数之和，value 放a和b两数之和出现的次数。
+2. 遍历大A和大B数组，统计两个数组元素之和，和出现的次数，放到map中。
+3. 定义int变量count，用来统计 a+b+c+d = 0 出现的次数。
+4. 在遍历大C和大D数组，找到如果 0-(c+d) 在map中出现过的话，就用count把map中key对应的value也就是出现次数统计出来。
+5. 最后返回统计值 count 就可以了
+
+```c++
+class Solution {
+public:
+    int fourSumCount(vector<int>& nums1, vector<int>& nums2, vector<int>& nums3, vector<int>& nums4) {
+        unordered_map<int, int> map1;// <key, value>存<A+B, times>
+        for(auto A : nums1) {
+            for(auto B : nums2) {
+                map1[A + B]++;
+            }
+        }
+        int ans = 0;
+        for(auto C : nums3) {
+            for(auto D : nums4) {
+                if(map1.find(-C-D) != map1.end()) {
+                    ans += map1[-C-D];
+                }
+            }
+        }
+        return ans;
+    }
+};
+```
+
+### 六、赎金信
+
+[力扣题目链接](https://leetcode.cn/problems/ransom-note/)
+
+给定一个赎金信 (ransom) 字符串和一个杂志(magazine)字符串，判断第一个字符串 ransom 能不能由第二个字符串 magazines 里面的字符构成。如果可以构成，返回 true ；否则返回 false。
+
+(题目说明：为了不暴露赎金信字迹，要从杂志上搜索各个需要的字母，组成单词来表达意思。杂志字符串中的每个字符只能在赎金信字符串中使用一次。)
+
+**注意：**
+
+你可以假设两个字符串均只含有小写字母。
+
+canConstruct("a", "b") -> false
+canConstruct("aa", "ab") -> false
+canConstruct("aa", "aab") -> true
+
+
+
+思路：这道题目和[242.有效的字母异位词](https://programmercarl.com/0242.有效的字母异位词.html)很像，[242.有效的字母异位词](https://programmercarl.com/0242.有效的字母异位词.html)相当于求 字符串a 和 字符串b 是否可以相互组成 ，而这道题目是求 字符串a能否组成字符串b，而不用管字符串b 能不能组成字符串a。
+
+本题判断第一个字符串ransom能不能由第二个字符串magazines里面的字符构成，但是这里需要注意两点。
+
+- 第一点“为了不暴露赎金信字迹，要从杂志上搜索各个需要的字母，组成单词来表达意思” 这里*说明杂志里面的字母不可重复使用。*
+- 第二点 “你可以假设两个字符串均只含有小写字母。” *说明只有小写字母*，这一点很重要
+
+完整代码：
+
+```c++
+//哈希表
+// class Solution {
+// public:
+//     bool canConstruct(string ransomNote, string magazine) {
+//         if (ransomNote.size() > magazine.size()) {
+//             return false;
+//         }
+//         unordered_map<char, int> mz; //<char, times>
+//         for(auto ch : magazine) {
+//             mz[ch]++;
+//         }
+//         for(auto ch : ransomNote) {
+//             if(mz.find(ch) != mz.end() && mz[ch] != 0) {
+//                 mz[ch]--;
+//             } else {
+//                 return false;
+//             }
+//         }
+//         return true;
+//     }
+// };
+
+//数组在哈希法中的应用
+class Solution {
+public:
+    bool canConstruct(string ransomNote, string magazine) {
+        if(ransomNote.size() > magazine.size()) {
+            return false;
+        }
+        int cnt[26] = {0};
+        for(auto& ch : magazine) {
+            cnt[ch - 'a']++;
+        }
+        for(auto& ch : ransomNote) {
+            if(cnt[ch - 'a'] > 0) {
+                cnt[ch - 'a']--;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+**总结：**
+
+因为题目所只有小写字母，那可以采用空间换取时间的哈希策略， 用一个长度为26的数组还记录magazine里字母出现的次数。
+
+然后再用ransomNote去验证这个数组是否包含了ransomNote所需要的所有字母。依然是数组在哈希法中的应用。
+
+一些同学可能想，用数组干啥，都用map完事了，**其实在本题的情况下，使用map的空间消耗要比数组大一些的，因为map要维护红黑树或者哈希表，而且还要做哈希函数，是费时的！数据量大的话就能体现出来差别了。 所以数组更加简单直接有效！**
+
+### 七、三数之和
+
+# 三数之和
+
+[力扣题目链接](https://leetcode.cn/problems/3sum/)
+
+给你一个包含 n 个整数的数组 nums，判断 nums 中是否存在三个元素 a，b，c ，使得 a + b + c = 0 ？请你找出所有满足条件且不重复的三元组。
+
+**注意：** 答案中不可以包含重复的三元组。
+
+示例：
+
+给定数组 nums = [-1, 0, 1, 2, -1, -4]，
+
+满足要求的三元组集合为： [ [-1, 0, 1], [-1, -1, 2] ]
+
+
+
+**此题直接背，无他.**
+
+
+
+双指针法，**这道题目使用双指针法 要比哈希法高效一些**，那么来讲解一下具体实现的思路。
+
+动画效果如下：
+
+<img src="https://code-thinking.cdn.bcebos.com/gifs/15.%E4%B8%89%E6%95%B0%E4%B9%8B%E5%92%8C.gif" alt="15.三数之和" style="zoom: 80%;" />
+
+拿这个nums数组来举例，首先将数组排序，然后有一层for循环，i从下标0的地方开始，同时定一个下标left 定义在i+1的位置上，定义下标right 在数组结尾的位置上。
+
+依然还是在数组中找到 abc 使得a + b +c =0，我们这里相当于 a = nums[i]，b = nums[left]，c = nums[right]。
+
+接下来如何移动left 和right呢， 如果nums[i] + nums[left] + nums[right] > 0 就说明 此时三数之和大了，因为数组是排序后了，所以right下标就应该向左移动，这样才能让三数之和小一些。
+
+如果 nums[i] + nums[left] + nums[right] < 0 说明 此时 三数之和小了，left 就向右移动，才能让三数之和大一些，直到left与right相遇为止。
+
+时间复杂度：O(n^2)。
+
+双指针法C++代码:
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int>> ret;
+        sort(nums.begin(), nums.end());
+        for(int i = 0; i < nums.size(); i++) {
+            if(nums[0] > 0 ) {// 排序之后如果第一个元素已经大于零，那么无论如何组合都不可能凑成三元组，直接返回结果就可以了
+                return ret;
+            }
+            //第一层去重
+            if(i > 0 && nums[i - 1] == nums[i]) {
+                continue;
+            }
+            int left = i + 1;
+            int right = nums.size() - 1;
+            while(left < right) {
+                if(nums[i] + nums[left] + nums[right] < 0) left++;
+                else if(nums[i] + nums[left] + nums[right] > 0) right--;
+                else {
+                    ret.push_back({nums[i], nums[left], nums[right]});
+                    // 第二层(双指针的一层)去重;下面的情况只可能与上面加入ret的三元组相同.如[-4 -3 -3 0 4 7 7]
+                    while(left < right && nums[left] == nums[left + 1]) left++;
+                    while(left < right && nums[right] == nums[right - 1]) right--;
+                    // 找到答案时，双指针同时收缩
+                    left++;
+                    right--;
+                }
+            }
+        }
+        return ret;
+    }
+};
+```
+
+**总结：**一层for循环num[i]为确定值，然后循环内有left和right下标作为双指针，找到nums[i] + nums[left] + nums[right] == 0
+
+### 八、四数之和
+
+[力扣题目链接](https://leetcode.cn/problems/4sum/)
+
+题意：给定一个包含 n 个整数的数组 nums 和一个目标值 target，判断 nums 中是否存在四个元素 a，b，c 和 d ，使得 a + b + c + d 的值与 target 相等？找出所有满足条件且不重复的四元组。
+
+**注意：**
+
+答案中不可以包含重复的四元组。
+
+示例： 给定数组 nums = [1, 0, -1, 0, -2, 2]，和 target = 0。 满足要求的四元组集合为： [ [-1, 0, 0, 1], [-2, -1, 1, 2], [-2, 0, 0, 2] ]
+
+
+
+**思路：**
+
+四数之和，和[15.三数之和 ](https://programmercarl.com/0015.三数之和.html)是一个思路，都是使用双指针法, 基本解法就是在[15.三数之和 ](https://programmercarl.com/0015.三数之和.html)的基础上再套一层for循环。
+
+但是有一些细节需要注意，例如： 不要判断`nums[k] > target` 就返回了，三数之和 可以通过 `nums[i] > 0` 就返回了，因为 0 已经是确定的数了，四数之和这道题目 target是任意值。比如：数组是`[-4, -3, -2, -1]`，`target`是`-10`，不能因为`-4 > -10`而跳过。但是我们依旧可以去做剪枝，逻辑变成`nums[i] > target && (nums[i] >=0 || target >= 0)`就可以了。
+
+[15.三数之和 ](https://programmercarl.com/0015.三数之和.html)的双指针解法是一层for循环num[i]为确定值，然后循环内有left和right下标作为双指针，找到nums[i] + nums[left] + nums[right] == 0。
+
+四数之和的双指针解法是两层for循环nums[k] + nums[i]为确定值，依然是循环内有left和right下标作为双指针，找出nums[k] + nums[i] + nums[left] + nums[right] == target的情况，三数之和的时间复杂度是O(n^2)，四数之和的时间复杂度是O(n^3) 。
+
+那么一样的道理，五数之和、六数之和等等都采用这种解法。
+
+对于[15.三数之和 双指针法就是将原本暴力O(n^3)的解法，降为O(n^2)的解法，四数之和的双指针解法就是将原本暴力O(n^4)的解法，降为O(n^3)的解法。
+
+之前我们讲过哈希表的经典题目：[454.四数相加II ](https://programmercarl.com/0454.四数相加II.html)，相对于本题简单很多，因为本题是要求在一个集合中找出四个数相加等于target，同时四元组不能重复。
+
+而四数相加II 是四个独立的数组，只要找到A[i] + B[j] + C[k] + D[l] = 0就可以，不用考虑有重复的四个元素相加等于0的情况，所以相对于本题还是简单了不少！
+
+
+
+我们来回顾一下，几道题目使用了双指针法。
+
+双指针法将时间复杂度：O(n^2)的解法优化为 O(n)的解法。也就是降一个数量级，题目如下：
+
+- [27.移除元素](https://programmercarl.com/0027.移除元素.html)
+- [15.三数之和](https://programmercarl.com/0015.三数之和.html)
+- [18.四数之和](https://programmercarl.com/0018.四数之和.html)
+
+链表相关双指针题目：
+
+- [206.反转链表](https://programmercarl.com/0206.翻转链表.html)
+- [19.删除链表的倒数第N个节点](https://programmercarl.com/0019.删除链表的倒数第N个节点.html)
+- [面试题 02.07. 链表相交](https://programmercarl.com/面试题02.07.链表相交.html)
+- [142题.环形链表II](https://programmercarl.com/0142.环形链表II.html)
+
+
+
+此题完整代码：
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        vector<vector<int>> result;
+        sort(nums.begin(), nums.end());
+        for (int k = 0; k < nums.size(); k++) {
+            // 剪枝处理
+            if (nums[k] > target && nums[k] >= 0) {
+            	break; // 这里使用break，统一通过最后的return返回
+            }
+            // 对nums[k]去重
+            if (k > 0 && nums[k] == nums[k - 1]) {
+                continue;
+            }
+            for (int i = k + 1; i < nums.size(); i++) {
+                // 2级剪枝处理
+                if (nums[k] + nums[i] > target && nums[k] + nums[i] >= 0) {
+                    break;
+                }
+
+                // 对nums[i]去重
+                if (i > k + 1 && nums[i] == nums[i - 1]) {
+                    continue;
+                }
+                int left = i + 1;
+                int right = nums.size() - 1;
+                while (right > left) {
+                    // nums[k] + nums[i] + nums[left] + nums[right] > target 会溢出
+                    if ((long) nums[k] + nums[i] + nums[left] + nums[right] > target) right--;
+                    else if ((long) nums[k] + nums[i] + nums[left] + nums[right]  < target) left++;
+                    else {
+                        result.push_back(vector<int>{nums[k], nums[i], nums[left], nums[right]});
+                        // 对nums[left]和nums[right]去重
+                        while (right > left && nums[right] == nums[right - 1]) right--;
+                        while (right > left && nums[left] == nums[left + 1]) left++;
+                        // 找到答案时，双指针同时收缩
+                        right--;
+                        left++;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+};
+```
+
+**总结：**四数之和的双指针解法是两层for循环nums[k] + nums[i]为确定值，依然是循环内有left和right下标作为双指针，找出nums[k] + nums[i] + nums[left] + nums[right] == target的情况，三数之和的时间复杂度是O(n^2)，四数之和的时间复杂度是O(n^3) 
 
 ## 二叉树
 
