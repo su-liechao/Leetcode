@@ -820,6 +820,10 @@ public:
 
 为什么fast不能跳过去呢？ 在刚刚已经说过一次了，**fast相对于slow是一次移动一个节点，所以不可能跳过去**。
 
+### 八、总结
+
+![img](https://code-thinking-1253855093.file.myqcloud.com/pics/%E9%93%BE%E8%A1%A8%E6%80%BB%E7%BB%93.png)
+
 ## 哈希表
 
 ### 常见的三种哈希结构
@@ -1322,8 +1326,6 @@ public:
 
 ### 七、三数之和
 
-# 三数之和
-
 [力扣题目链接](https://leetcode.cn/problems/3sum/)
 
 给你一个包含 n 个整数的数组 nums，判断 nums 中是否存在三个元素 a，b，c ，使得 a + b + c = 0 ？请你找出所有满足条件且不重复的三元组。
@@ -1499,6 +1501,1246 @@ public:
 ```
 
 **总结：**四数之和的双指针解法是两层for循环nums[k] + nums[i]为确定值，依然是循环内有left和right下标作为双指针，找出nums[k] + nums[i] + nums[left] + nums[right] == target的情况，三数之和的时间复杂度是O(n^2)，四数之和的时间复杂度是O(n^3) 
+
+## 字符串
+
+### 一、反转字符串
+
+[力扣题目链接](https://leetcode.cn/problems/reverse-string/)
+
+编写一个函数，其作用是将输入的字符串反转过来。输入字符串以字符数组 char[] 的形式给出。
+
+不要给另外的数组分配额外的空间，你必须原地修改输入数组、使用 O(1) 的额外空间解决这一问题。
+
+你可以假设数组中的所有字符都是 ASCII 码表中的可打印字符。
+
+示例 1：
+输入：["h","e","l","l","o"]
+输出：["o","l","l","e","h"]
+
+示例 2：
+输入：["H","a","n","n","a","h"]
+输出：["h","a","n","n","a","H"]
+
+思路：
+
+对于字符串，我们定义两个指针（也可以说是索引下标），一个从字符串前面，一个从字符串后面，两个指针同时向中间移动，并交换元素。
+
+以字符串`hello`为例，过程如下：
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gp0fvi91pfg30de0akwnq.gif" alt="344.反转字符串" style="zoom:67%;" />
+
+```c++
+class Solution {
+public:
+    void reverseString(vector<char>& s) {
+        int left = 0;
+        int right = s.size() - 1;
+        for(; left < right; left++, right--) {
+            swap(s[left], s[right]);
+        }
+    }
+};
+```
+
+### 二、反转字符串II
+
+[力扣题目链接](https://leetcode.cn/problems/reverse-string-ii/)
+
+给定一个字符串 s 和一个整数 k，从字符串开头算起, 每计数至 2k 个字符，就反转这 2k 个字符中的前 k 个字符。
+
+如果剩余字符少于 k 个，则将剩余字符全部反转。
+
+如果剩余字符小于 2k 但大于或等于 k 个，则反转前 k 个字符，其余字符保持原样。
+
+示例:
+
+输入: s = "abcdefg", k = 2
+输出: "bacdfeg"
+
+思路：
+
+在遍历字符串的过程中，只要让 i += (2 * k)，i 每次移动 2 * k 就可以了，然后判断是否需要有反转的区间
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    string reverseStr(string s, int k) {
+        for(int i = 0; i < s.size(); i += 2*k) {    //一次循环处理2k个字符
+            //前k个字符完整，反转前k个字符
+            if(i + k < s.size()) {
+                for(int left = i, right = i + k -1; left < right; left++, right--) {
+                    swap(s[left], s[right]);
+                }
+            } else {// 否则反转i->s.end()的字符
+                for(int left = i, right = s.size() - 1; left < right; left++, right--) {
+                    swap(s[left], s[right]);
+                }
+            }
+        }
+        return s;
+    }
+};
+```
+
+### 三、剑指Offer 05.替换空格
+
+[力扣题目链接(opens new window)](https://leetcode.cn/problems/ti-huan-kong-ge-lcof/)
+
+请实现一个函数，把字符串 s 中的每个空格替换成"%20"。
+
+示例 1： 输入：s = "We are happy."
+输出："We%20are%20happy."
+
+
+
+思路：
+
+如果想把这道题目做到极致，就不要只用额外的辅助空间了！
+
+首先扩充数组到每个空格替换成"%20"之后的大小。
+
+然后从后向前替换空格，也就是双指针法，过程如下：
+
+i指向新长度的末尾，j指向旧长度的末尾。
+
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1go6qmevhgpg20du09m4qp.gif" alt="替换空格" style="zoom:67%;" />
+
+有同学问了，为什么要从后向前填充，从前向后填充不行么？
+
+从前向后填充就是O(n^2)的算法了，因为每次添加元素都要将添加元素之后的所有元素向后移动。
+
+**其实很多数组填充类的问题，都可以先预先给数组扩容带填充后的大小，然后在从后向前进行操作。**
+
+这么做有两个好处：
+
+1. 不用申请新数组。
+2. 从后向前填充元素，避免了从前先后填充元素要来的 每次添加元素都要将添加元素之后的所有元素向后移动。
+
+```c++
+//创建新的字符串  空间复杂度O(N)
+// class Solution {
+// public:
+//     string replaceSpace(string s) {
+//         string ret;
+//         for(int i = 0; i < s.size(); i++) {
+//             if(s[i] == ' ') {
+//                 ret += "%20";
+//             } else {
+//                 ret += s[i];
+//             }
+//         }
+//         return ret;
+//     }
+// };
+
+//原地修改(扩充字符串+双指针)  空间复杂度O(1)
+class Solution {
+public:
+    string replaceSpace(string s) {
+        int cnt = 0;
+        int len = s.length();
+        for(int i = 0; i < len; i++) {
+            if(s[i] == ' ') {
+                cnt++;
+            }
+        }
+        s.resize(len + 2 * cnt);//扩充字符串
+        for(int i = len - 1, j = s.size() - 1; i < j; i--, j--) {
+            if(s[i] == ' ') {
+                s[j -2] = '%';
+                s[j -1] = '2';
+                s[j] = '0';
+                j -= 2;
+            } else {
+                s[j] = s[i];
+            }
+        }
+        return s;
+    }
+};
+```
+
+### 四、翻转字符串里的单词
+
+[力扣题目链接](https://leetcode.cn/problems/reverse-words-in-a-string/)
+
+给定一个字符串，逐个翻转字符串中的每个单词。
+
+示例 1：
+输入: "the sky is blue"
+输出: "blue is sky the"
+
+示例 2：
+输入: "  hello world!  "
+输出: "world! hello"
+解释: 输入字符串可以在前面或者后面包含多余的空格，但是反转后的字符不能包括。
+
+示例 3：
+输入: "a good  example"
+输出: "example good a"
+解释: 如果两个单词间有多余的空格，将反转后单词间的空格减少到只含一个
+
+思路：
+
+- 反转整个字符串
+- 反转单词（去掉多余空格）
+- 去除末尾无用字符
+
+对于字符串可变的语言，就不需要再额外开辟空间了，直接在字符串上原地实现。在这种情况下，反转字符和去除空格可以一起完成。
+
+<img src="https://pic.leetcode-cn.com/Figures/151/mutable2.png" alt="fig" style="zoom: 33%;" />
+
+
+
+完整代码：
+
+```c++
+//整体翻转+局部翻转
+class Solution {
+public:
+    string reverseWords(string s) {
+        // 先反转整个字符串
+        reverse(s.begin(), s.end());
+        int n = s.size();
+        int idx = 0;
+        for(int start = 0; start < s.size(); start++) {
+            //找到单词的第一个字母
+            if(s[start] != ' ') {
+                // cout << idx << endl;
+                if(idx != 0) s[idx++] = ' ';//不是第一个单词，则用空格隔开
+                int end = start; //使用end来给修改字符串的值
+                while(end < n && s[end] != ' ') s[idx++] = s[end++];
+                //反转该单词
+                reverse(s.begin() + idx - (end - start), s.begin() + idx);
+                start = end; //更新start的位置
+            }
+        }
+        s.erase(s.begin() + idx, s.end());	//去除末尾无用字符
+        return s;
+    }
+};
+```
+
+### 五、剑指Offer58-II.左旋转字符串
+
+[力扣题目链接](https://leetcode.cn/problems/zuo-xuan-zhuan-zi-fu-chuan-lcof/)
+
+字符串的左旋转操作是把字符串前面的若干个字符转移到字符串的尾部。请定义一个函数实现字符串左旋转操作的功能。比如，输入字符串"abcdefg"和数字2，该函数将返回左旋转两位得到的结果"cdefgab"。
+
+示例 1：
+输入: s = "abcdefg", k = 2
+输出: "cdefgab"
+
+示例 2：
+输入: s = "lrloseumgh", k = 6
+输出: "umghlrlose"
+
+限制：
+1 <= k < s.length <= 10000
+
+思路：前面提到使用整体反转+局部反转就可以实现，反转单词顺序的目的。
+
+这道题目也非常类似，依然可以通过局部反转+整体反转 达到左旋转的目的。
+
+具体步骤为：
+
+- 反转区间为前n的子串
+- 反转区间为n到末尾的子串
+- 反转整个字符串
+
+最后就可以得到左旋n的目的，而不用定义新的字符串，完全在本串上操作。
+
+如图：
+
+<img src="https://code-thinking.cdn.bcebos.com/pics/%E5%89%91%E6%8C%87Offer58-II.%E5%B7%A6%E6%97%8B%E8%BD%AC%E5%AD%97%E7%AC%A6%E4%B8%B2.png" alt="img" style="zoom:50%;" />
+
+最终得到左旋2个单元的字符串：cdefgab
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    string reverseLeftWords(string s, int n) {
+        reverse(s.begin(), s.begin() + n);  //左闭右开
+        reverse(s.begin() + n, s.end());
+        reverse(s.begin(), s.end());
+        return s;
+    }
+};
+```
+
+### 六、实现 strStr()
+
+[力扣题目链接](https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/)
+
+实现 strStr() 函数。
+
+给定一个 haystack 字符串和一个 needle 字符串，在 haystack 字符串中找出 needle 字符串出现的第一个位置 (从0开始)。如果不存在，则返回 -1。
+
+示例 1: 输入: haystack = "hello", needle = "ll" 输出: 2
+
+示例 2: 输入: haystack = "aaaaa", needle = "bba" 输出: -1
+
+#### 1.暴力求解
+
+直观的解法的是：枚举原串 haystack 中的每个字符作为「发起点」，每次从原串的「发起点」和匹配串的「首位」开始尝试匹配：
+
+- 匹配成功：返回本次匹配的原串「发起点」。
+
+- 匹配失败：枚举原串的下一个「发起点」，重新尝试匹配。
+
+```c++
+//暴力解法,复杂度O((n-m)*m)
+class Solution {
+public:
+    int strStr(string haystack, string needle) {
+        int n = haystack.length(), m = needle.length();
+        for(int i = 0; i <= n - m; i++) {   //这里相当于剪枝了
+            int index_ha = i, index_ne = 0;
+            while(haystack[index_ha] == needle[index_ne] && index_ne < m) {
+                index_ha++;
+                index_ne++;
+            }
+            if(index_ne == m) return i;
+        }
+        return -1;
+    }
+};
+```
+
+#### 2.KMP
+
+**KMP详解见：**[【宫水三叶】简单题学 KMP 算法 - 找出字符串中第一个匹配项的下标 - 力扣（LeetCode）](https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/solution/shua-chuan-lc-shuang-bai-po-su-jie-fa-km-tb86/)
+
+```c++
+//KMP解法,复杂度O(m+n)
+class Solution {
+public:
+    int strStr(string haystack, string needle) {
+        int n = haystack.length(), m = needle.length();
+        //构造next数组
+        vector<int> next(m, 0);
+        for(int i = 1, j = 0; i < m; i++) {
+            while(j > 0 && needle[i] != needle[j]) j = next[j - 1];
+            if(needle[i] == needle[j]) j++;
+            next[i] = j;
+        }
+        
+        //match
+        for(int i = 0, j = 0; i < n; i++) {
+            while(j > 0 && haystack[i] != needle[j]) j = next[j - 1];
+            if(haystack[i] == needle[j]) j++;
+            if(j == m) return i - m + 1;
+        }
+        return -1;
+    }
+};
+```
+
+总结：KMP算法中next数组为什么遇到字符不匹配的时候可以找到上一个匹配过的位置继续匹配，靠的是有计算好的前缀表。 前缀表里，统计了各个位置为终点字符串的最长相同前后缀的长度.
+
+### 七、重复的子字符转
+
+[力扣题目链接](https://leetcode.cn/problems/repeated-substring-pattern/)
+
+给定一个非空的字符串，判断它是否可以由它的一个子串重复多次构成。给定的字符串只含有小写英文字母，并且长度不超过10000。
+
+示例 1:
+输入: "abab"
+输出: True
+解释: 可由子字符串 "ab" 重复两次构成。
+
+示例 2:
+输入: "aba"
+输出: False
+
+示例 3:
+输入: "abcabcabcabc"
+输出: True
+解释: 可由子字符串 "abc" 重复四次构成。 (或者子字符串 "abcabc" 重复两次构成。)
+
+#### 1.移动匹配
+
+当一个字符串s：abcabc，内部又重复的子串组成，那么这个字符串的结构一定是这样的：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220728104518.png" alt="图一" style="zoom:50%;" />
+
+也就是又前后又相同的子串组成。
+
+那么既然前面有相同的子串，后面有相同的子串，用 s + s，这样组成的字符串中，后面的子串做前串，前后的子串做后串，就一定还能组成一个s，如图：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220728104931.png" alt="图二" style="zoom:50%;" />
+
+所以判断字符串s是否有重复子串组成，只要两个s拼接在一起，里面还出现一个s的话，就说明是又重复子串组成。
+
+当然，我们在判断 s + s 拼接的字符串里是否出现一个s的的时候，**要刨除 s + s 的首字符和尾字符**，这样避免在s+s中搜索出原来的s，我们要搜索的是中间拼接出来的s。
+
+代码如下：
+
+```c++
+class Solution {
+public:
+    bool repeatedSubstringPattern(string s) {
+        //size_t find(const string& str, size_t pos = 0) const; 
+        //返回子字符串str第一次出现的起始下标,str待查找的子字符串,pos开始查找的位置下标
+        return (s + s).find(s, 1) != s.size();
+    }
+};
+
+```
+
+#### 2.KMP解法
+
+在由重复子串组成的字符串中，**最长相等前后缀**不包含的子串就是最小重复子串，这里那字符串s：abababab 来举例，ab就是最小重复单位，如图所示：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220728205249.png" alt="图三" style="zoom:50%;" />
+
+**如何找到最小重复子串？**最关键还是要理解 最长相等前后缀，如图：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20220728212157.png" alt="图四" style="zoom:50%;" />
+
+步骤一：因为 这是相等的前缀和后缀，t[0] 与 k[0]相同， t[1] 与 k[1]相同，所以 s[0] 一定和 s[2]相同，s[1] 一定和 s[3]相同，即：，s[0]s[1]与s[2]s[3]相同 。
+
+步骤二： 因为在同一个字符串位置，所以 t[2] 与 k[0]相同，t[3] 与 k[1]相同。
+
+步骤三： 因为 这是相等的前缀和后缀，t[2] 与 k[2]相同 ，t[3]与k[3] 相同，所以，s[2]一定和s[4]相同，s[3]一定和s[5]相同，即：s[2]s[3] 与 s[4]s[5]相同。
+
+步骤四：循环往复。
+
+所以字符串s，s[0]s[1]与s[2]s[3]相同， s[2]s[3] 与 s[4]s[5]相同，s[4]s[5] 与 s[6]s[7] 相同。
+
+**正是因为 最长相等前后缀的规则，当一个字符串由重复子串组成的，最长相等前后缀不包含的子串就是最小重复子串**。
+
+KMP实现代码：
+
+```c++
+class Solution {
+public:
+    void getNext (int* next, const string& s){
+        next[0] = 0;
+        int j = 0;
+        for(int i = 1;i < s.size(); i++){
+            while(j > 0 && s[i] != s[j]) {
+                j = next[j - 1];
+            }
+            if(s[i] == s[j]) {
+                j++;
+            }
+            next[i] = j;
+        }
+    }
+    bool repeatedSubstringPattern (string s) {
+        if (s.size() == 0) {
+            return false;
+        }
+        int next[s.size()];
+        getNext(next, s);
+        int len = s.size();
+        if (next[len - 1] != 0 && len % (len - (next[len - 1] )) == 0) {
+            return true;
+        }
+        return false;
+    }
+};
+```
+
+## 双指针
+
+### 双指针法的例题以及总结
+
+由于双指针法穿插应用于前面的一些例题中，这里给出应用到双指针的例题连接
+
+[戳我](https://www.programmercarl.com/双指针总结.html)
+
+## 栈和队列
+
+### 一、队列：先入先出的数据结构
+
+**队列的实现**
+
+1.为了实现队列，可以使用**动态数组**和**指向队列头部的索引**。
+
+如上所述，队列应支持两种操作：入队和出队。入队会向队列追加一个新元素，而出队会删除第一个元素。 所以我们需要一个索引来指出起点。
+
+队列应支持两种操作：入队和出队。入队会向队列追加一个新元素，而出队会删除第一个元素。 所以我们需要一个索引来指出起点。
+
+参考实现：
+
+```c++
+#include <iostream>
+
+class MyQueue {
+    private:
+        // store elements
+        vector<int> data;       
+        // a pointer to indicate the start position
+        int p_start;            
+    public:
+        MyQueue() {p_start = 0;}
+        /** Insert an element into the queue. Return true if the operation is successful. */
+        bool enQueue(int x) {
+            data.push_back(x);
+            return true;
+        }
+        /** Delete an element from the queue. Return true if the operation is successful. */
+        bool deQueue() {
+            if (isEmpty()) {
+                return false;
+            }
+            p_start++;
+            return true;
+        };
+        /** Get the front item from the queue. */
+        int Front() {
+            return data[p_start];
+        };
+        /** Checks whether the queue is empty or not. */
+        bool isEmpty()  {
+            return p_start >= data.size();
+        }
+};
+
+int main() {
+    MyQueue q;
+    q.enQueue(5);
+    q.enQueue(3);
+    if (!q.isEmpty()) {
+        cout << q.Front() << endl;
+    }
+    q.deQueue();
+    if (!q.isEmpty()) {
+        cout << q.Front() << endl;
+    }
+    q.deQueue();
+    if (!q.isEmpty()) {
+        cout << q.Front() << endl;
+    }
+}
+```
+
+缺点：上面的实现很简单，但在某些情况下效率很低。 随着头部指针的移动，浪费了越来越多的空间。 当我们有空间限制时，这将是难以接受的。
+
+更有效的方法是使用**循环队列**。 具体来说，我们可以使用**固定大小的数组**和**两个指针**来指示起始位置和结束位置。 目的是**重用**我们之前提到的被**浪费的存储**。
+
+#### 1.设计循环队列
+
+[leetcode连接](https://leetcode.cn/leetbook/read/queue-stack/kzlb5/)
+
+设计你的循环队列实现。 循环队列是一种线性数据结构，其操作表现基于 FIFO（先进先出）原则并且队尾被连接在队首之后以形成一个循环。它也被称为“环形缓冲器”。
+
+循环队列的一个好处是我们可以利用这个队列之前用过的空间。在一个普通队列里，一旦一个队列满了，我们就不能插入下一个元素，即使在队列前面仍有空间。但是使用循环队列，我们能使用这些空间去存储新的值。
+
+你的实现应该支持如下操作：
+
+MyCircularQueue(k): 构造器，设置队列长度为 k 。
+Front: 从队首获取元素。如果队列为空，返回 -1 。
+Rear: 获取队尾元素。如果队列为空，返回 -1 。
+enQueue(value): 向循环队列插入一个元素。如果成功插入则返回真。
+deQueue(): 从循环队列中删除一个元素。如果成功删除则返回真。
+isEmpty(): 检查循环队列是否为空。
+isFull(): 检查循环队列是否已满。
+
+完整代码：
+
+```c++
+//循环链表总结
+//rear = (rear + 1) % capacity; 入队改变rear
+//front = (front + 1) % capacity; 出队改变front
+//rear == front; 判断是否为空
+//front == (rear +1 ) % capacity; 判断是否为满
+//elements[front]; 获取front的值
+//elements[(rear - 1 + capacity) % capacity];获取rear的值
+//size = (rear-front+capacity) % capacity;当前队列的元素个数size
+class MyCircularQueue {
+private:
+    int front;
+    int rear;
+    int capacity;
+    vector<int> elements;
+
+public:
+    MyCircularQueue(int k) {
+        this->capacity = k + 1; //循环链表有一个位置不存放数据,所以要+1
+        this->elements = vector<int>(capacity);
+        rear = front = 0;   //初始位置
+    }
+
+    bool enQueue(int value) {
+        if (isFull()) {
+            return false;
+        }
+        elements[rear] = value;
+        rear = (rear + 1) % capacity; //入队改变rear值
+        return true;
+    }
+
+    bool deQueue() {
+        if (isEmpty()) {
+            return false;
+        }
+        front = (front + 1) % capacity; //出队改变front值
+        return true;
+    }
+
+    int Front() {
+        if (isEmpty()) {
+            return -1;
+        }
+        return elements[front];
+    }
+
+    int Rear() {
+        if (isEmpty()) {
+            return -1;
+        }
+        return elements[(rear - 1 + capacity) % capacity];  //rear位置不存值,一直是空的.rear-1才存放值
+    }
+
+    bool isEmpty() {
+        return rear == front;
+    }
+
+    bool isFull() {
+        return ((rear + 1) % capacity) == front;
+    }
+};
+
+/**
+ * Your MyCircularQueue object will be instantiated and called as such:
+ * MyCircularQueue* obj = new MyCircularQueue(k);
+ * bool param_1 = obj->enQueue(value);
+ * bool param_2 = obj->deQueue();
+ * int param_3 = obj->Front();
+ * int param_4 = obj->Rear();
+ * bool param_5 = obj->isEmpty();
+ * bool param_6 = obj->isFull();
+ */
+```
+
+### 二、队列和BFS
+
+​	**广度优先搜索（BFS）**的一个常见应用是找出**从根结点到目标结点的最短路径**。在本文中，这里提供了一个示例来解释在 BFS 算法中是如何逐步应用队列的。
+
+**示例：**这里我们提供一个示例来说明如何使用 BFS 来找出根结点 `A` 和目标结点 `G` 之间的最短路径。见ppt.
+
+[队列与BFS](https://leetcode.cn/leetbook/read/queue-stack/kyozi/)
+
+#### 1.墙与门
+
+给定一个 m × n 的二维网格，网格中有以下三种可能的初始化值：
+
+-1 表示墙或是障碍物
+0 表示一扇门
+INF 无限表示一个空的房间。然后，我们用 2^31 - 1 = 2147483647 代表 INF。你可以认为通往门的距离总是小于 2147483647 的。
+**你要给每个空房间位上填上该房间到 最近门的距离，如果无法到达门，则填 INF 即可。**
+
+示例：
+
+给定二维网格：
+
+INF  -1  0  INF
+INF INF INF  -1
+INF  -1 INF  -1
+  0  -1 INF INF
+运行完你的函数后，该网格应该变成：
+
+  3  -1   0   1
+  2   2   1  -1
+  1  -1   2  -1
+  0  -1   3   4
+
+BFS实现:
+
+```c++
+class Solution {
+public:
+    void wallsAndGates(vector<vector<int>>& rooms) {
+        const int INF = 2147483647;
+        int m = rooms.size(), n = rooms[0].size();
+        vector<pair<int, int>> directs = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        queue<pair<int, int>> q;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (rooms[i][j] != 0) continue;
+                q.push(make_pair(i, j)); //所有门入队
+            }
+        }
+        while (!q.empty()) {
+            auto pos = q.front();q.pop();
+            int x = pos.first, y = pos.second;
+            int dp = rooms[x][y] + 1; 	//距离门的距离：当前位置的距离门的距离+1
+            for (auto d : directs) {
+                int nx = x + d.first, ny = y + d.second;
+                if (nx < 0 || nx >= m || ny < 0 || ny >= n || rooms[nx][ny] != INF) continue;
+                rooms[nx][ny] = dp; 
+                q.push(make_pair(nx, ny));
+            }
+        }
+        return;
+    }
+};
+
+```
+
+DFS实现：
+
+```c++
+class Solution {
+public:
+    c
+    void wallsAndGates(vector<vector<int>>& rooms) {
+        for (int i = 0; i < rooms.size(); ++i) {
+            for (int j = 0; j < rooms[i].size(); ++j) {
+                if (rooms[i][j] == 0) dfs(rooms, i, j, 0);
+            }
+        }
+    }
+    void dfs(vector<vector<int>>& rooms, int i, int j, int step) {
+        if (i < 0 || i >= rooms.size() || j < 0 || j >= rooms[i].size() || rooms[i][j] < step) return;//rooms[i][j] < step：排除墙
+        rooms[i][j] = step;
+        dfs(rooms, i + 1, j, step + 1);
+        dfs(rooms, i - 1, j, step + 1);
+        dfs(rooms, i, j + 1, step + 1);
+        dfs(rooms, i, j - 1, step + 1);
+    }
+};
+```
+
+#### 2.岛屿数量
+
+[200. 岛屿数量 - 力扣（LeetCode）](https://leetcode.cn/problems/number-of-islands/)
+
+思路：为了求出岛屿的数量，我们可以扫描整个二维网格。如果一个位置为 1，则将其加入队列，开始进行广度优先搜索。在广度优先搜索的过程中，每个搜索到的 1 都会被重新标记为 0。直到队列为空，搜索结束。最终**岛屿的数量就是我们进行广度优先搜索的次数**。
+
+BFS代码：
+
+```c++
+class Solution {
+public:
+    int numIslands(vector<vector<char>>& grid) {
+        int num = 0;
+        for(int i = 0; i < grid.size(); i++) {
+            for(int j = 0; j < grid[0].size(); j++) {
+                if(grid[i][j] == '1') {
+                    BFS(grid, i, j);
+                    num++;
+                }
+            }
+        }
+        return num;
+    }
+private:
+    void BFS(vector<vector<char>>& grid, int x, int y) {
+        int m = grid.size();
+        int n = grid[0].size();
+        vector<pair<int, int>> directs = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        queue<pair<int, int>> q;
+        q.push(make_pair(x, y));
+        grid[x][y] = '0';
+        while(!q.empty()) {
+            auto index = q.front(); q.pop();
+            int x = index.first, y = index.second;
+            for(auto d : directs) {
+                int nx = x + d.first, ny = y + d.second;
+                if(nx < 0 || nx >= m || ny < 0 || ny >= n || grid[nx][ny] == '0') continue;//越界或已访问
+                q.push(make_pair(nx, ny));
+                grid[nx][ny] = '0';
+            }
+        }
+    }
+};
+```
+
+**DFS**:将二维网格看成一个无向图，竖直或水平相邻的 1 之间有边相连。为了求出岛屿的数量，我们可以扫描整个二维网格。如果一个位置为 1，则以其为起始节点开始进行**深度优先搜索**。在深度优先搜索的过程中，每个搜索到的 1 都会被重新标记为 0。最终**岛屿的数量就是我们进行深度优先搜索的次数**.
+
+```c++
+class Solution {
+public:
+    int numIslands(vector<vector<char>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        int num = 0;
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                if(grid[i][j] == '1'){
+                    DFS(grid, i, j);
+                    num++;
+                }
+            }
+        }
+        return num;
+    }
+private:
+    //DFS
+    void DFS(vector<vector<char>>& grid, int x, int y){
+        int m=grid.size();
+        int n=grid[0].size();
+        vector<pair<int, int>> directs = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        grid[x][y] = '0'; //访问过的1节点赋值为0
+        for(auto d : directs) {
+            int nx = x + d.first, ny = y + d.second;
+            if(nx < 0 || nx >= m || ny < 0 || ny >= n || grid[nx][ny] == '0') continue; //越界或已访问
+            DFS(grid, nx, ny);
+        }
+    }
+};
+```
+
+#### 3.打开转盘锁
+
+[752. 打开转盘锁 - 力扣（Leetcode）](https://leetcode.cn/problems/open-the-lock/description/)
+
+你有一个带有四个圆形拨轮的转盘锁。每个拨轮都有10个数字： `'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'` 。每个拨轮可以自由旋转：例如把 `'9'` 变为 `'0'`，`'0'` 变为 `'9'` 。每次旋转都只能旋转一个拨轮的一位数字。
+
+锁的初始数字为 `'0000'` ，一个代表四个拨轮的数字的字符串。
+
+列表 `deadends` 包含了一组死亡数字，一旦拨轮的数字和列表里的任何一个元素相同，这个锁将会被永久锁定，无法再被旋转。
+
+字符串 `target` 代表可以解锁的数字，你需要给出解锁需要的最小旋转次数，如果无论如何不能解锁，返回 `-1` 。
+
+**BFS**
+
+```c++
+class Solution {
+public:
+    int openLock(vector<string>& deadends, string target) {
+        if(target == "0000") return 0;
+        unordered_set<string> dead(deadends.begin(), deadends.end());
+        if(dead.count("0000")) return -1; //初始值在dead中
+        int step = 0;
+        queue<pair<string, int>> q;
+        q.emplace("0000", 0);
+        unordered_set<string> seen = {"0000"};//记录已访问的密码
+        while(!q.empty()) {
+            auto [status, step] = q.front();q.pop();
+            for(auto status_next : get_next(status)) {
+                if(!dead.count(status_next) && !seen.count(status_next)) {
+                    if(status_next == target) return step + 1;
+                    q.emplace(status_next, step + 1);
+                    seen.insert(status_next);
+                }
+            }
+        }
+        return -1;  //无解
+    }
+private:
+    vector<string> get_next(string& status) {	// 枚举 status 通过一次旋转得到的数字
+        vector<string> ret;
+        auto num_prev = [](char x) -> char {
+            return (x == '0' ? '9' : x - 1);
+        };
+        auto num_succ = [](char x) -> char {
+            return (x == '9' ? '0' : x + 1);
+        };
+        for (int i = 0; i < 4; ++i) {
+            char num = status[i];
+            status[i] = num_prev(num);
+            ret.push_back(status);
+            status[i] = num_succ(num);
+            ret.push_back(status);
+            status[i] = num;    //每一次循环需要还原status
+        }
+        return ret;
+    };
+};
+```
+
+此类问题，通常我们会使用「BFS」求解，但朴素的 BFS 通常会带来搜索空间爆炸问题。可以考虑双向BFS解法。
+
+<img src="https://pic.leetcode-cn.com/38dc5897de2b554ea606a92c5eada14b0e0030195334e9fd65943ed6d0f77c1d-image.png" alt="image.png" style="zoom:67%;" />
+
+#### 4.单词接龙
+
+[127. 单词接龙 - 力扣（Leetcode）](https://leetcode.cn/problems/word-ladder/description/)
+
+字典 `wordList` 中从单词 `beginWord` 和 `endWord` 的 **转换序列** 是一个按下述规格形成的序列 `beginWord -> s1 -> s2 -> ... -> sk`：
+
+- 每一对相邻的单词只差一个字母。
+-  对于 `1 <= i <= k` 时，每个 `si` 都在 `wordList` 中。注意， `beginWord` 不需要在 `wordList` 中。
+- `sk == endWord`
+
+给你两个单词 `beginWord` 和 `endWord` 和一个字典 `wordList` ，返回 *从 `beginWord` 到 `endWord` 的 **最短转换序列** 中的 **单词数目*** 。如果不存在这样的转换序列，返回 `0` 。
+
+这题和上面的一题很相似。可以采用BFS、双向BFS的方法。
+
+**BFS**
+
+```c++
+class Solution {
+public:
+    int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+        unordered_set<string> word_set(wordList.begin(), wordList.end());
+        if(!word_set.count(endWord)) return 0;
+        int step = 1;
+        unordered_set<string> visit;	//visit集合其实可以省略，访问过的单词直接从wordlist中去掉
+        int len = beginWord.length();
+        queue<string> q;
+        q.push(beginWord);
+        visit.insert(beginWord);
+        while(!q.empty()) {
+            int q_size = q.size();  
+            for(int i = 0; i < q_size; i++) {   //q_size:当前层队列中元素个数
+                string cur_word = q.front(); q.pop();
+                for(int j = 0; j < len; j++) {  //遍历cur_word的每一个字母
+                    char original = cur_word[j]; //保存cur_word[j]原始字符,用于恢复cur_word
+                    for(char k = 'a'; k <= 'z'; k++) { //每一个字母的25种改变可能
+                        if(k == original) continue;   //跳过cur_word本身
+                        cur_word[j] = k;
+                        if(word_set.count(cur_word) && !visit.count(cur_word)) {    //未访问过,且在wordlist中
+                            if(cur_word == endWord) return step + 1;
+                            else {
+                                q.push(cur_word);
+                                visit.insert(cur_word);
+                            }
+                        }
+                    }
+                    cur_word[j] = original;  //还原cur_word
+                }
+            }
+            step++; //遍历一层，则步数加一
+        }
+        return 0;
+    }
+};
+```
+
+**双向BFS**
+
+```c++
+class Solution {
+public:
+    int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+        //第一步：将wordList放入哈希表中，便于判断某个单词是否在wordList中
+        unordered_set<string>wordSet(wordList.begin(),wordList.end());
+        if(wordSet.size()==0||wordSet.find(endWord)==wordSet.end()) return 0;
+
+        //分别用左边和右边扩散的哈希表代表单向BFS里的队列，他们在双向BFS中交替使用
+        unordered_set<string>beginVisited;
+        beginVisited.insert(beginWord);
+        unordered_set<string>endVisited;
+        endVisited.insert(endWord);
+
+        //第二步：执行双向BFS，左右交替扩散的步数之和为所求
+        int step=1;
+        while(!beginVisited.empty()&&!endVisited.empty()){
+            //优先选择小的哈希表进行扩散，考虑的情况更少
+            if(beginVisited.size()>endVisited.size()){
+                unordered_set<string>tmp=beginVisited;
+                beginVisited=endVisited;
+                endVisited=tmp;
+            }
+            //保证beginVisited是相对较小的集合，nextLevelVisited在扩散完成以后，会成为新的beginVisited
+            unordered_set<string>nextLevelVisited;
+            for(string word:beginVisited){
+                for(int i=0;i<word.size();++i){
+                    string str=word;
+                    for(char c='a';c<='z';++c){
+                        if(str[i]==c) continue;
+                        str[i]=c;
+                        //在另外一边的BFS中汇合
+                        if(endVisited.find(str)!=endVisited.end()){
+                            return step+1;
+                        }
+                        //字符变化后在wordList中
+                        if(wordSet.find(str)!=wordSet.end()){
+                            nextLevelVisited.insert(str);
+                            wordSet.erase(str);
+                        }
+                    }
+                }
+            }
+            beginVisited=nextLevelVisited;
+            step++;
+        }
+        return 0;
+    }
+};
+```
+
+#### 5.完全平方数
+
+[279. 完全平方数 - 力扣（Leetcode）](https://leetcode.cn/problems/perfect-squares/description/)
+
+给你一个整数 `n` ，返回 *和为 `n` 的完全平方数的最少数量* 。
+
+**完全平方数** 是一个整数，其值等于另一个整数的平方；换句话说，其值等于一个整数自乘的积。例如，`1`、`4`、`9` 和 `16` 都是完全平方数，而 `3` 和 `11` 不是。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 12
+输出：3 
+解释：12 = 4 + 4 + 4
+```
+
+**示例 2：**
+
+```
+输入：n = 13
+输出：2
+解释：13 = 4 + 9
+```
+
+**BFS解法**
+这题让求的是若干个平方数的和等于n，并且平方数的个数最少。首先我们可以把它想象成为一颗m叉树，树的每一个节点的值都是平方数的和，如下图所示。
+
+每一个节点的值都是从根节点到当前节点的累加。而**平方数的个数其实就是遍历到第几层的时候累加和等于target**。我们只需要一层一层的遍历，也就是常说的BFS，当遇到累加的和等于target的时候直接返回当前的层数即可。
+
+<img src="https://pic.leetcode-cn.com/1616821848-TlFxpv-image.png" alt="image.png" style="zoom:50%;" />
+
+```c++
+class Solution {
+public:
+    int numSquares(int n) {
+        int new_root = n,step = 0;
+        queue<pair<int, int>> q;
+        q.push({new_root, step});
+        while(!q.empty()){
+            auto [new_root, step] = q.front();
+            q.pop();
+            step++;
+            for(int i=0; i*i<=new_root; i++){
+                int temp = new_root - i * i;
+                if(temp == 0) return step;	// step返回当前的层数
+                q.push({temp,step});
+            }
+        }
+        return 0;
+    }
+};
+```
+
+### 三、栈：后入先出的数据结构
+
+#### 1.最小栈
+
+[155. 最小栈 - 力扣（Leetcode）](https://leetcode.cn/problems/min-stack/description/)
+
+设计一个支持 `push` ，`pop` ，`top` 操作，并能在常数时间内检索到最小元素的栈。
+
+实现 `MinStack` 类:
+
+- `MinStack()` 初始化堆栈对象。
+- `void push(int val)` 将元素val推入堆栈。
+- `void pop()` 删除堆栈顶部的元素。
+- `int top()` 获取堆栈顶部的元素。
+- `int getMin()` 获取堆栈中的最小元素。
+
+**示例 1:**
+
+```
+输入：
+["MinStack","push","push","push","getMin","pop","top","getMin"]
+[[],[-2],[0],[-3],[],[],[],[]]
+
+输出：
+[null,null,null,null,-3,null,0,-2]
+
+解释：
+MinStack minStack = new MinStack();
+minStack.push(-2);
+minStack.push(0);
+minStack.push(-3);
+minStack.getMin();   --> 返回 -3.
+minStack.pop();
+minStack.top();      --> 返回 0.
+minStack.getMin();   --> 返回 -2.
+```
+
+**辅助栈**:
+
+<img src="https://pic.leetcode-cn.com/28724fa9f92b6952f7fdaf8760edd1dea850b137c22df28751f1cdd4d2680992-155.gif" alt="155.gif" style="zoom: 33%;" />
+
+```c++
+class MinStack {
+public:
+    MinStack() {
+
+    }
+    stack<int> stk0;
+    stack<int> stk1;    
+    void push(int val) {
+        stk0.push(val);
+        if(stk1.empty() || val <= getMin()) {   //min辅助栈为空或有新的最小值时，辅助栈压栈
+            stk1.push(val);
+        }
+    }
+    void pop() {
+        if(stk0.top() == getMin()) {    //stk1中出栈的栈顶元素是最小值
+            stk1.pop();
+        }
+        stk0.pop();
+    }
+    int top() {
+        return stk0.top();
+    }
+    int getMin() {
+        return stk1.top();
+    }
+};
+```
+
+#### 2.有效括号
+
+[20. 有效的括号 - 力扣（Leetcode）](https://leetcode.cn/problems/valid-parentheses/description/)
+
+给定一个只包括 `'('`，`')'`，`'{'`，`'}'`，`'['`，`']'` 的字符串 `s` ，判断字符串是否有效。
+
+有效字符串需满足：
+
+1. 左括号必须用相同类型的右括号闭合。
+2. 左括号必须以正确的顺序闭合。
+3. 每个右括号都有一个对应的相同类型的左括号。
+
+**示例 1：**
+
+```
+输入：s = "()"
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：s = "()[]{}"
+输出：true
+```
+
+**示例 3：**
+
+```
+输入：s = "(]"
+输出：false
+```
+
+```c++
+class Solution {
+public:
+    bool isValid(string s) {
+        stack<char> stk;
+        for(int i = 0; i < s.length(); i++) {
+            if(!stk.empty()) {
+                if(stk.top() == '(' && s[i] == ')') stk.pop();	//满足出栈的三种情况
+                else if(stk.top() == '[' && s[i] == ']') stk.pop();
+                else if(stk.top() == '{' && s[i] == '}') stk.pop();
+                else stk.push(s[i]);	//否则继续入栈
+            } else {
+                stk.push(s[i]);
+            }
+        }
+    return stk.empty();
+    }
+};
+```
+
+#### 3.每日温度
+
+[739. 每日温度 - 力扣（Leetcode）](https://leetcode.cn/problems/daily-temperatures/description/)
+
+给定一个整数数组 `temperatures` ，表示每天的温度，返回一个数组 `answer` ，其中 `answer[i]` 是指对于第 `i` 天，下一个更高温度出现在几天后。如果气温在这之后都不会升高，请在该位置用 `0` 来代替。
+
+**示例 1:**
+
+```
+输入: temperatures = [73,74,75,71,69,72,76,73]
+输出: [1,1,4,2,1,1,0,0]
+```
+
+暴力解法会超时，**这里使用单调栈的方法:**参考题解 [739. 每日温度 - 力扣（Leetcode）](https://leetcode.cn/problems/daily-temperatures/solutions/71433/leetcode-tu-jie-739mei-ri-wen-du-by-misterbooo/)
+
+<img src="E:\Postgraduate\Study\Leetcode\images\每日温度.png" alt="每日温度"  />
+
+```c++
+class Solution {
+public:
+    vector<int> dailyTemperatures(vector<int>& temperatures) {
+        int n = temperatures.size();
+        vector<int> ret(n, 0);
+        stack<int> stk; //构造温度递减栈(栈内的温度从栈顶依次递减)
+        for(int i = 0; i < n; i++) {
+            while(!stk.empty() && temperatures[i] > temperatures[stk.top()]) {  //当前温度大于栈顶温度
+                int t = stk.top(); stk.pop();   //栈顶t:对应temperatures的索引
+                ret[t] = i - t;
+            }
+            stk.push(i);    //更新栈顶(最大温度temperatures的索引)
+        }
+        return ret;
+    }
+};
+```
+
+#### 4.逆波兰表达式
+
+[150. 逆波兰表达式求值 - 力扣（Leetcode）](https://leetcode.cn/problems/evaluate-reverse-polish-notation/description/)
+
+根据逆波兰表示法，求表达式的值。
+
+有效的算符包括 `+`、`-`、`*`、`/` 。每个运算对象可以是整数，也可以是另一个逆波兰表达式。
+
+**注意** 两个整数之间的除法只保留整数部分。
+
+可以保证给定的逆波兰表达式总是有效的。换句话说，表达式总会得出有效数值且不存在除数为 0 的情况。
+
+**示例 1：**
+
+```
+输入：tokens = ["2","1","+","3","*"]
+输出：9
+解释：该算式转化为常见的中缀算术表达式为：((2 + 1) * 3) = 9
+```
+
+**示例 2：**
+
+```
+输入：tokens = ["4","13","5","/","+"]
+输出：6
+解释：该算式转化为常见的中缀算术表达式为：(4 + (13 / 5)) = 6
+```
+
+
+
+```c++
+class Solution {
+public:
+    int evalRPN(vector<string>& tokens) {
+        stack<long int> stk;
+        for(int i = 0; i < tokens.size(); i++) {
+            if(tokens[i] == "+" || tokens[i] == "-" || tokens[i] == "*" || tokens[i] == "/") {
+                auto num1 = stk.top(); stk.pop();
+                auto num2 = stk.top(); stk.pop();
+                if(tokens[i] == "+") stk.push(num2 + num1);
+                else if(tokens[i] == "-") stk.push(num2 - num1);
+                else if(tokens[i] == "*") stk.push(num2 * num1);
+                else stk.push(num2 / num1);	//tokens[i]是操作符，则弹出两个操作数并将计算结果压入栈中
+            } else {
+                stk.push(atoi(tokens[i].c_str()));	//tokens[i]是操作数，压栈  (string->char->int)
+            }
+        }
+        return stk.top();
+    }
+};
+```
+
+
+
+### 四、栈和DFS
+
+与 BFS 类似，`深度优先搜索`（DFS）也可用于查找从根结点到目标结点的路径。在本文中，我们提供了示例来解释 DFS 是如何工作的以及栈是如何逐步帮助 DFS 工作的。
+
+
+示例：来看一个例子吧。我们希望通过 DFS 找出从根结点 `A` 到目标结点 `G` 的路径。见ppt.  [栈和DFS](https://leetcode.cn/leetbook/read/queue-stack/gro21/)
+
+#### 1.岛屿数量
+
+
+
+
 
 ## 二叉树
 
@@ -4155,3 +5397,1633 @@ public:
 
 <img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20211030125421.png" alt="img" style="zoom:150%;" />
 
+## 回溯算法
+
+### 一、回溯理论基础
+
+#### 什么是回溯法
+
+回溯法也可以叫做回溯搜索法，它是一种搜索的方式。
+
+在二叉树系列中，我们已经不止一次，提到了回溯，例如[二叉树：以为使用了递归，其实还隐藏着回溯](https://programmercarl.com/二叉树中递归带着回溯.html)。
+
+回溯是递归的副产品，只要有递归就会有回溯。
+
+**所以以下讲解中，回溯函数也就是递归函数，指的都是一个函数**。
+
+#### 回溯法的效率
+
+回溯法的性能如何呢，这里要和大家说清楚了，**虽然回溯法很难，很不好理解，但是回溯法并不是什么高效的算法**。
+
+**因为回溯的本质是穷举，穷举所有可能，然后选出我们想要的答案**，如果想让回溯法高效一些，可以加一些剪枝的操作，但也改不了回溯法就是穷举的本质。
+
+那么既然回溯法并不高效为什么还要用它呢？
+
+因为没得选，**一些问题能暴力搜出来就不错了，撑死了再剪枝一下，还没有更高效的解法**。
+
+此时大家应该好奇了，都什么问题，这么牛逼，只能暴力搜索。
+
+#### 回溯法解决的问题
+
+回溯法，一般可以解决如下几种问题：
+
+- 组合问题：N个数里面按一定规则找出k个数的集合
+- 切割问题：一个字符串按一定规则有几种切割方式
+- 子集问题：一个N个数的集合里有多少符合条件的子集
+- 排列问题：N个数按一定规则全排列，有几种排列方式
+- 棋盘问题：N皇后，解数独等等
+
+**相信大家看着这些之后会发现，每个问题，都不简单！**
+
+#### 如何理解回溯法
+
+**回溯法解决的问题都可以抽象为树形结构**，是的，指的是所有回溯法的问题都可以抽象为树形结构！
+
+因为回溯法解决的都是在集合中递归查找子集，**集合的大小就构成了树的宽度，递归的深度，都构成的树的深度**。
+
+递归就要有终止条件，所以必然是一棵高度有限的树（N叉树）。
+
+#### 回溯法模板
+
+**回溯三部曲**
+
+- 回溯函数模板返回值以及参数
+
+在回溯算法中，我的习惯是函数起名字为backtracking，这个起名大家随意。
+
+回溯算法中函数返回值一般为void。
+
+再来看一下参数，因为回溯算法需要的参数可不像二叉树递归的时候那么容易一次性确定下来，所以一般是先写逻辑，然后需要什么参数，就填什么参数。
+
+但后面的回溯题目的讲解中，为了方便大家理解，我在一开始就帮大家把参数确定下来。
+
+回溯函数伪代码如下：
+
+```text
+void backtracking(参数)
+```
+
+- 回溯函数终止条件
+
+既然是树形结构，那么我们在讲解 二叉树的递归 的时候，就知道遍历树形结构一定要有终止条件。
+
+所以**回溯也有要终止条件**。
+
+什么时候达到了终止条件，树中就可以看出，一般来说搜到叶子节点了，也就找到了满足条件的一条答案，把这个答案存放起来，并结束本层递归。
+
+所以回溯函数终止条件伪代码如下：
+
+```c++
+if (终止条件) {
+    存放结果;
+    return;
+}
+```
+
+- 回溯搜索的遍历过程
+
+在上面我们提到了，回溯法一般是在集合中递归搜索，集合的大小构成了树的宽度，递归的深度构成的树的深度。
+
+如图：
+
+<img src="https://img-blog.csdnimg.cn/20210130173631174.png" alt="回溯算法理论基础" style="zoom: 50%;" />
+
+注意图中，特意举例集合大小和孩子的数量是相等的！
+
+回溯函数遍历过程伪代码如下：
+
+```c++
+for (选择：本层集合中元素（树中节点孩子的数量就是集合的大小）) {
+    处理节点;
+    backtracking(路径，选择列表); // 递归
+    回溯，撤销处理结果
+}
+```
+
+for循环就是遍历集合区间，可以理解一个节点有多少个孩子，这个for循环就执行多少次。
+
+backtracking这里自己调用自己，实现递归。
+
+大家可以从图中看出**for循环可以理解是横向遍历，backtracking（递归）就是纵向遍历**，这样就把这棵树全遍历完了，一般来说，搜索叶子节点就是找的其中一个结果了。
+
+分析完过程，回溯算法模板框架如下：
+
+```c++
+void backtracking(参数) {
+    if (终止条件) {
+        存放结果;
+        return;
+    }
+
+    for (选择：本层集合中元素（树中节点孩子的数量就是集合的大小）) {
+        处理节点;
+        backtracking(路径，选择列表); // 递归
+        回溯，撤销处理结果
+    }
+}
+```
+
+**这份模板很重要，后面做回溯法的题目都靠它了！**
+
+#### 总结
+
+本篇讲解了，什么是回溯算法，知道了回溯和递归是相辅相成的。
+
+接着提到了回溯法的效率，回溯法其实就是暴力查找，并不是什么高效的算法。
+
+然后列出了回溯法可以解决几类问题，可以看出每一类问题都不简单。
+
+最后我们讲到回溯法解决的问题都可以**抽象为树形结构（N叉树）**，并给出了回溯法的模板。
+
+### 二、组合
+
+[77. 组合 - 力扣（Leetcode）](https://leetcode.cn/problems/combinations/description/)
+
+给定两个整数 `n` 和 `k`，返回范围 `[1, n]` 中所有可能的 `k` 个数的组合。
+
+你可以按 **任何顺序** 返回答案。
+
+**示例 1：**
+
+```
+输入：n = 4, k = 2
+输出：
+[
+  [2,4],
+  [3,4],
+  [2,3],
+  [1,2],
+  [1,3],
+  [1,4],
+]
+```
+
+**提示：**
+
+- `1 <= n <= 20`
+- `1 <= k <= n`
+
+**思路**
+
+把组合问题抽象为如下树形结构：
+
+<img src="https://img-blog.csdnimg.cn/20201123195223940.png" alt="77.组合" style="zoom:50%;" />
+
+可以看出这个棵树，一开始集合是 1，2，3，4， 从左向右取数，取过的数，不在重复取。
+
+第一次取1，集合变为2，3，4 ，因为k为2，我们只需要再取一个数就可以了，分别取2，3，4，得到集合[1,2] [1,3] [1,4]，以此类推。
+
+**每次从集合中选取元素，可选择的范围随着选择的进行而收缩，调整可选择的范围**。
+
+**图中可以发现n相当于树的宽度，k相当于树的深度**。
+
+那么如何在这个树上遍历，然后收集到我们要的结果集呢？
+
+**图中每次搜索到了叶子节点，我们就找到了一个结果**。
+
+相当于只需要把达到叶子节点的结果收集起来，就可以求得 n个数中k个数的组合集合。
+
+
+
+#### **回溯三部曲**
+
+- 递归函数的返回值以及参数
+
+在这里要定义两个全局变量，一个用来存放符合条件单一结果，一个用来存放符合条件结果的集合。
+
+代码如下：
+
+```cpp
+vector<vector<int>> result; // 存放符合条件结果的集合
+vector<int> path; // 用来存放符合条件结果
+```
+
+其实不定义这两个全局变量也是可以的，把这两个变量放进递归函数的参数里，但函数里参数太多影响可读性，所以我定义全局变量了。
+
+函数里一定有两个参数，既然是集合n里面取k的数，那么n和k是两个int型的参数。
+
+然后还需要一个参数，为int型变量startIndex，这个参数用来记录本层递归的中，集合从哪里开始遍历（集合就是[1,...,n] ）。**startIndex 就是防止出现重复的组合。**
+
+从下图中红线部分可以看出，在集合[1,2,3,4]取1之后，下一层递归，就要在[2,3,4]中取数了，那么下一层递归如何知道从[2,3,4]中取数呢，靠的就是startIndex。
+
+<img src="https://img-blog.csdnimg.cn/20201123195328976.png" alt="77.组合2" style="zoom:50%;" />
+
+所以需要startIndex来记录下一层递归，搜索的起始位置。那么整体代码如下：
+
+```cpp
+vector<vector<int>> result; // 存放符合条件结果的集合
+vector<int> path; // 用来存放符合条件单一结果
+void backtracking(int n, int k, int startIndex) 
+```
+
+- 回溯函数终止条件
+
+什么时候到达所谓的叶子节点了呢？
+
+path这个数组的大小如果达到k，说明我们找到了一个子集大小为k的组合了，在图中path存的就是根节点到叶子节点的路径。
+
+如图红色部分：
+
+<img src="https://img-blog.csdnimg.cn/20201123195407907.png" alt="77.组合3" style="zoom:50%;" />
+
+此时用result二维数组，把path保存起来，并终止本层递归。
+
+所以终止条件代码如下：
+
+```cpp
+if (path.size() == k) {
+    result.push_back(path);
+    return;
+}
+```
+
+- 单层搜索的过程
+
+回溯法的搜索过程就是一个树型结构的遍历过程，在如下图中，可以看出for循环用来横向遍历，递归的过程是纵向遍历。
+
+<img src="https://img-blog.csdnimg.cn/20201123195242899.png" alt="77.组合1" style="zoom:50%;" />
+
+如此我们才遍历完图中的这棵树。
+
+for循环每次从startIndex开始遍历，然后用path保存取到的节点i。
+
+代码如下：
+
+```cpp
+for (int i = startIndex; i <= n; i++) { // 控制树的横向遍历
+    path.push_back(i); // 处理节点 
+    backtracking(n, k, i + 1); // 递归：控制树的纵向遍历，注意下一层搜索要从i+1开始
+    path.pop_back(); // 回溯，撤销处理的节点
+}
+```
+
+可以看出backtracking（递归函数）通过不断调用自己一直往深处遍历，总会遇到叶子节点，遇到了叶子节点就要返回。
+
+backtracking的下面部分就是**回溯**的操作了，**撤销本次处理的结果**。
+
+完整代码：
+
+```c++
+class Solution {
+private:
+    vector<vector<int>> result; // 存放符合条件结果的集合
+    vector<int> path; // 用来存放符合条件结果
+    void backtracking(int n, int k, int startIndex) {
+        if (path.size() == k) {
+            result.push_back(path);
+            return;
+        }
+        for (int i = startIndex; i <= n; i++) {
+            path.push_back(i); // 处理节点 
+            backtracking(n, k, i + 1); // 递归
+            path.pop_back(); // 回溯，撤销处理的节点
+        }
+    }
+public:
+    vector<vector<int>> combine(int n, int k) {
+        backtracking(n, k, 1);
+        return result;
+    }
+};
+```
+
+#### 回溯剪枝优化
+
+在遍历的过程中有如下代码：
+
+```c++
+for (int i = startIndex; i <= n; i++) {
+    path.push_back(i);
+    backtracking(n, k, i + 1);
+    path.pop_back();
+}
+```
+
+事实上，如果 `n = 7, k = 4`，从 `5` 开始搜索就已经没有意义了，这是因为：即使把 5 选上，后面的数只有 6 和 7，一共就 3 个候选数，凑不出 4 个数的组合。因此，搜索起点有上界，这个上界是多少，可以举几个例子分析。
+
+分析搜索起点的上界，其实是在深度优先遍历的过程中剪枝，剪枝可以避免不必要的遍历，剪枝剪得好，可以大幅度节约算法的执行时间。
+
+下面的图片绿色部分是剪掉的枝叶，当 n 很大的时候，能少遍历很多结点，节约了时间。
+
+<img src="https://pic.leetcode-cn.com/3ddd55697423b5831cbbd42f4b901ebbade0daa456c651a70c758fe359d8a0d1-image.png" alt="77.组合4" style="zoom: 50%;" />
+
+容易知道：搜索起点和当前还需要选几个数有关，而当前还需要选几个数与已经选了几个数有关，即与 path 的长度相关。我们举几个例子分析：
+
+例如：n = 6 ，k = 4。
+
+path.size() == 1 的时候，接下来要选择 3 个数，搜索起点最大是 4，最后一个被选的组合是 [4, 5, 6]；
+path.size() == 2 的时候，接下来要选择 2 个数，搜索起点最大是 5，最后一个被选的组合是 [5, 6]；
+path.size() == 3 的时候，接下来要选择 1 个数，搜索起点最大是 6，最后一个被选的组合是 [6]；
+
+再如：n = 15 ，k = 4。 
+
+path.size() == 1 的时候，接下来要选择 3 个数，搜索起点最大是 13，最后一个被选的是 [13, 14, 15]；
+path.size() == 2 的时候，接下来要选择 2 个数，搜索起点最大是 14，最后一个被选的是 [14, 15]；
+path.size() == 3 的时候，接下来要选择 1 个数，搜索起点最大是 15，最后一个被选的是 [15]；
+
+可以归纳出：
+
+`搜索起点的上界 + 接下来要选择的元素个数 - 1 = n`
+其中，`接下来要选择的元素个数 = k - path.size()`，整理得到：
+
+`搜索起点的上界 = n - (k - path.size()) + 1`
+所以，我们的剪枝过程就是：把 `i <= n` 改成 `i <= n - (k - path.size()) + 1` ：
+
+```c++
+for (int i = startIndex; i <= n - (k - path.size()) + 1; i++)
+```
+
+优化后整体代码如下：
+
+```cpp
+class Solution {
+private:
+    vector<vector<int>> result;
+    vector<int> path;
+    void backtracking(int n, int k, int startIndex) {
+        if (path.size() == k) {
+            result.push_back(path);
+            return;
+        }
+        for (int i = startIndex; i <= n - (k - path.size()) + 1; i++) { // 剪枝优化的地方
+            path.push_back(i); // 处理节点
+            backtracking(n, k, i + 1);
+            path.pop_back(); // 回溯，撤销处理的节点
+        }
+    }
+public:
+    vector<vector<int>> combine(int n, int k) {
+        backtracking(n, k, 1);
+        return result;
+    }
+};
+```
+
+### 三、电话号码的字母组合
+
+[17. 电话号码的字母组合 - 力扣（Leetcode）](https://leetcode.cn/problems/letter-combinations-of-a-phone-number/)
+
+给定一个仅包含数字 `2-9` 的字符串，返回所有它能表示的字母组合。答案可以按 **任意顺序** 返回。
+
+给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2021/11/09/200px-telephone-keypad2svg.png)
+
+**示例 1：**
+
+```
+输入：digits = "23"
+输出：["ad","ae","af","bd","be","bf","cd","ce","cf"]
+```
+
+**提示：**
+
+- `0 <= digits.length <= 4`
+- `digits[i]` 是范围 `['2', '9']` 的一个数字。
+
+**思路**
+
+例如：输入："23"，抽象为树形结构，如图所示：
+
+<img src="https://img-blog.csdnimg.cn/20201123200304469.png" alt="17. 电话号码的字母组合" style="zoom:50%;" />
+
+图中可以看出遍历的深度，就是输入"23"的长度，而叶子节点就是我们要收集的结果，输出["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"]。
+
+回溯三部曲：
+
+- 确定回溯函数参数
+
+首先需要一个字符串s来收集叶子节点的结果，然后用一个字符串数组result保存起来，这两个变量我依然定义为全局。
+
+再来看参数，参数指定是有题目中给的string digits，然后还要有一个参数就是int型的index。
+
+注意这个index和之前组合例题中的startIndex不同了。
+
+**这个index是记录遍历第几个数字了**，就是用来遍历digits的（题目中给出数字字符串），**同时index也表示树的深度**。
+
+代码如下：
+
+```cpp
+vector<string> result;
+string s;
+void backtracking(const string& digits, int index)
+```
+
+- 确定终止条件
+
+例如输入用例"23"，两个数字，那么根节点往下递归两层就可以了，叶子节点就是要收集的结果集。
+
+那么终止条件就是如果index 等于 输入的数字个数（digits.size）了（本来index就是用来遍历digits的）。
+
+然后收集结果，结束本层递归。
+
+代码如下：
+
+```cpp
+if (index == digits.size()) {
+    result.push_back(s);
+    return;
+}
+```
+
+- 确定单层遍历逻辑
+
+首先要取index指向的数字，并找到对应的字符集（手机键盘的字符集）。
+
+然后for循环来处理这个字符集，代码如下：
+
+```cpp
+int digit = digits[index] - '0';        // 将index指向的数字转为int
+string letters = letterMap[digit];      // 取数字对应的字符集
+for (int i = 0; i < letters.size(); i++) {
+    s.push_back(letters[i]);            // 处理
+    backtracking(digits, index + 1);    // 递归，注意index+1，一下层要处理下一个数字了
+    s.pop_back();                       // 回溯
+}
+```
+
+**注意这里for循环，可不像是在组合问题中从startIndex开始遍历的**。
+
+**因为本题每一个数字代表的是不同集合，也就是求不同集合之间的组合，而[77. 组合](https://programmercarl.com/0077.组合.html)是求同一个集合中的组合！**
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<string> result;
+    string s;
+    vector<string> letterCombinations(string digits) {
+        if(digits.empty()) return result;
+        backtracking(digits, 0);
+        return result;
+    }
+private:
+    void backtracking(string digits, int index) {   //index记录处理第几个数字
+        if(index == digits.size()) {
+            result.push_back(s);
+            return;
+        }
+        int num = digits[index] - '0';  //转换为整数
+        string digit_str = letterMap[num];
+        for(int i = 0; i < digit_str.size(); i++) {
+            s.push_back(digit_str[i]);	// 处理
+            backtracking(digits, index + 1);	// 递归，注意index+1，一下层要处理下一个数字了
+            s.pop_back();		// 回溯
+        }
+    }    
+    const vector<string> letterMap= {
+        "", // 0
+        "", // 1
+        "abc", // 2
+        "def", // 3
+        "ghi", // 4
+        "jkl", // 5
+        "mno", // 6
+        "pqrs", // 7
+        "tuv", // 8
+        "wxyz", // 9
+    };
+};
+```
+
+### 四、组合总和
+
+[39. 组合总和 - 力扣（Leetcode）](https://leetcode.cn/problems/combination-sum/description/)
+
+给你一个 **无重复元素** 的整数数组 `candidates` 和一个目标整数 `target` ，找出 `candidates` 中可以使数字和为目标数 `target` 的 所有 **不同组合** ，并以列表形式返回。你可以按 **任意顺序** 返回这些组合。
+
+`candidates` 中的 **同一个** 数字可以 **无限制重复被选取** 。如果至少一个数字的被选数量不同，则两种组合是不同的。 
+
+对于给定的输入，保证和为 `target` 的不同组合数少于 `150` 个。
+
+**示例 1：**
+
+```
+输入：candidates = [2,3,6,7], target = 7
+输出：[[2,2,3],[7]]
+解释：
+2 和 3 可以形成一组候选，2 + 2 + 3 = 7 。注意 2 可以使用多次。
+7 也是一个候选， 7 = 7 。
+仅有这两种组合。
+```
+
+**示例 2：**
+
+```
+输入: candidates = [2,3,5], target = 8
+输出: [[2,2,2,2],[2,3,3],[3,5]]
+```
+
+本题和[77.组合](https://programmercarl.com/0077.组合.html)，[216.组合总和III ](https://programmercarl.com/0216.组合总和III.html)和区别是：**本题没有数量要求，可以无限重复，但是有总和的限制**，所以间接的也是有个数的限制。
+
+本题搜索的过程抽象成树形结构如下：
+
+<img src="https://img-blog.csdnimg.cn/20201223170730367.png" alt="39.组合总和" style="zoom: 50%;" /> 
+
+注意图中叶子节点的返回条件，因为本题没有组合数量要求，仅仅是总和的限制，所以递归没有层数的限制，只要选取的元素总和超过target，就返回！
+
+而在[77.组合](https://programmercarl.com/0077.组合.html)和[216.组合总和III](https://programmercarl.com/0216.组合总和III.html)中都可以知道要递归K层，因为要取k个元素的组合。
+
+**回溯三部曲**
+
+- 递归函数参数
+
+这里依然是定义两个全局变量，二维数组result存放结果集，数组path存放符合条件的结果。（这两个变量可以作为函数参数传入）
+
+首先是题目中给出的参数，集合candidates, 和目标值target。
+
+此外我还定义了int型的sum变量来统计单一结果path里的总和，其实这个sum也可以不用，用target做相应的减法就可以了，最后如何target==0就说明找到符合的结果了，但为了代码逻辑清晰，我依然用了sum。
+
+**本题还需要startIndex来控制for循环的起始位置，对于组合问题，什么时候需要startIndex呢？**
+
+我举过例子，如果是一个集合来求组合的话，就需要startIndex，例如：[77.组合 (opens new window)](https://programmercarl.com/0077.组合.html)，[216.组合总和III (opens new window)](https://programmercarl.com/0216.组合总和III.html)。
+
+如果是多个集合取组合，各个集合之间相互不影响，那么就不用startIndex，例如：[17.电话号码的字母组合(opens new window)](https://programmercarl.com/0017.电话号码的字母组合.html)
+
+**注意以上我只是说求组合的情况，如果是排列问题，又是另一套分析的套路，后面我再讲解排列的时候就重点介绍**。
+
+代码如下：
+
+```cpp
+vector<vector<int>> result;
+vector<int> path;
+void backtracking(vector<int>& candidates, int target, int sum, int startIndex)
+```
+
+- 递归终止条件
+
+从叶子节点可以清晰看到，终止只有两种情况，sum大于target和sum等于target。
+
+sum等于target的时候，需要收集结果，代码如下：
+
+```cpp
+if (sum > target) {
+    return;
+}
+if (sum == target) {
+    result.push_back(path);
+    return;
+}
+```
+
+- 单层搜索的逻辑
+
+单层for循环依然是从startIndex开始，搜索candidates集合。
+
+**注意本题和[77.组合 (opens new window)](https://programmercarl.com/0077.组合.html)、[216.组合总和III (opens new window)](https://programmercarl.com/0216.组合总和III.html)的一个区别是：本题元素为可重复选取的**。
+
+如何重复选取呢，看代码，注释部分：
+
+```cpp
+for (int i = startIndex; i < candidates.size(); i++) {
+    sum += candidates[i];
+    path.push_back(candidates[i]);
+    backtracking(candidates, target, sum, i); // 关键点:不用i+1了，表示可以重复读取当前的数
+    sum -= candidates[i];   // 回溯
+    path.pop_back();        // 回溯
+}
+```
+
+C++完整代码：
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+        backtracking(candidates, target, 0, 0);
+        return result;
+    }
+private:
+    void backtracking(vector<int>& candidates, int target, int sum, int startIndex) {
+        if(sum > target) return ;
+        if(sum == target) {
+            result.push_back(path);
+            return ;
+        }
+        for(int i = startIndex; i < candidates.size(); i++) {
+            path.push_back(candidates[i]);
+            sum += candidates[i];
+            // backtracking(candidates, target, sum);//例如:[2,4,3] 7; 这么写会出现[4,3],[3,4]的重复情况
+            backtracking(candidates, target, sum, i);//这么写保证了下一个数的索引不小于当前索引,则不会出现[3,4];此处的i可以不用+1,因为同一数字可用多次
+            sum -= candidates[i];
+            path.pop_back();
+        }
+    }
+};
+```
+
+**优化剪枝：**
+
+在这个树形结构中：
+
+<img src="https://img-blog.csdnimg.cn/20201223170730367.png" alt="39.组合总和" style="zoom:50%;" />
+
+以及上面的版本一的代码大家可以看到，对于sum已经大于target的情况，其实是依然进入了下一层递归，只是下一层递归结束判断的时候，会判断sum > target的话就返回。
+
+其实**如果已经知道下一层的sum会大于target，就没有必要进入下一层递归了。**
+
+那么可以在for循环的搜索范围上做做文章了。
+
+**对总集合排序之后，如果下一层的sum（就是本层的 sum + candidates[i]）已经大于target，就可以结束本轮for循环的遍历**。
+
+如图：
+
+<img src="https://img-blog.csdnimg.cn/20201223170809182.png" alt="39.组合总和1" style="zoom:50%;" />
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+        sort(candidates.begin(), candidates.end()); // 优化剪枝需要排序
+        backtracking(candidates, target, 0, 0);
+        return result;
+    }
+private:
+    void backtracking(vector<int>& candidates, int target, int sum, int startIndex) {
+        // if(sum > target) return ;	//这种剪枝相比下面的剪枝会多进入一次递归
+        if(sum == target) {
+            result.push_back(path);
+            return ;
+        }
+        for(int i = startIndex; i < candidates.size() && sum + candidates[i] <= target; i++) {
+            path.push_back(candidates[i]);
+            sum += candidates[i];
+            // backtracking(candidates, target, sum);// 这么写会出现[3,4],[4,3]的情况
+            backtracking(candidates, target, sum, i);// 这么写保证下一个数不小于当前数,则不会出现[4,3];此处的i可以不用+1,因为前后的数字可以重复
+            sum -= candidates[i];
+            path.pop_back();
+        }
+    }
+};
+```
+
+### 五、组合总和II
+
+[40. 组合总和 II - 力扣（Leetcode）](https://leetcode.cn/problems/combination-sum-ii/)
+
+给定一个候选人编号的集合 `candidates` 和一个目标数 `target` ，找出 `candidates` 中所有可以使数字和为 `target` 的组合。
+
+`candidates` 中的每个数字在每个组合中只能使用 **一次** 。
+
+**注意：**解集不能包含重复的组合。 
+
+**示例 1:**
+
+```
+输入: candidates = [10,1,2,7,6,1,5], target = 8,
+输出:
+[
+[1,1,6],
+[1,2,5],
+[1,7],
+[2,6]
+]
+```
+
+与上题区别：
+
+- 每个数字在每个组合中只能使用 **一次**
+- 本题数组**candidates的元素是有重复的**
+
+**思路**
+
+元素在同一个组合内是可以重复的，但两个组合不能相同。
+
+**所以我们要去重的是同一树层上的“使用过”，同一树枝上的都是一个组合里的元素，不用去重**。
+
+**强调一下，树层去重的话，需要对数组排序！**
+
+选择过程树形结构如图所示：
+
+<img src="E:\Postgraduate\Study\Leetcode\images\1599718525-iXEiiy-image.png" alt="1599718525-iXEiiy-image" style="zoom: 50%;" />
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+        sort(candidates.begin(), candidates.end());
+        backtracking(candidates, target, 0, 0);
+        return result;
+    }
+private:
+    void backtracking(vector<int>& candidates, int target, int sum, int startIndex) {
+        if(sum == target) {
+            result.push_back(path);
+            return ;
+        }
+        for(int cur = startIndex; cur < candidates.size() && sum + candidates[cur] <= target; cur++) {
+            //当candidates = [1,1,2,5,6,7,10],candidates有两个1,会出现重复现象
+            //[[1,1,6],[1,2,5],[1,7],[1,2,5],[1,7],[2,6]] 有重复集合
+            //[[1,1,6],[1,2,5],[1,7],[2,6]] 正确
+            // 对树的同一层使用过的元素进行跳过
+            if(cur > startIndex && candidates[cur - 1] == candidates[cur]) {
+                continue;
+            }
+            path.push_back(candidates[cur]);
+            sum += candidates[cur];
+            backtracking(candidates, target, sum, cur + 1);//因为每个数字在组合中只能使用一次，所以需要i+1
+            sum -= candidates[cur];
+            path.pop_back();
+        }
+    }
+};
+```
+
+**理解去重的精髓**
+
+参考[40. 组合总和 II 评论区大佬发言](https://leetcode.cn/problems/combination-sum-ii/solutions/14753/hui-su-suan-fa-jian-zhi-python-dai-ma-java-dai-m-3/)
+
+```c++
+解释语句: if(cur > startIndex && candidates[cur-1] == candidates[cur]) 是如何避免重复的。
+这个避免重复当思想是在是太重要了。
+这个方法最重要的作用是，可以让同一层级，不出现相同的元素。即
+                  1
+                 / \
+                2   2  这种情况不会发生 但是却允许了不同层级之间的重复即：
+               /     \
+              5       5
+                例2
+                  1
+                 /
+                2      这种情况确是允许的
+               /
+              2  
+                
+为何会有这种神奇的效果呢？
+首先 cur-1 == cur 是用于判定当前元素是否和之前元素相同的语句。这个语句就能砍掉例1。
+可是问题来了，如果把所有当前与之前一个元素相同的都砍掉，那么例二的情况也会消失。 
+因为当第二个2出现的时候，他就和前一个2相同了。
+                
+那么如何保留例2呢？
+那么就用cur > startIndex 来避免这种情况，你发现例1中的两个2是处在同一个层级上的，例2的两个2是处在不同层级上的。
+在一个for循环中，所有被遍历到的数都是属于一个层级的。我们要让一个层级中，
+必须出现且只出现一个2，那么就放过第一个出现重复的2，但不放过后面出现的2。
+一个层级中第一个出现的2的特点就是 cur == startIndex. 第二个出现的2特点是cur > startIndex.
+```
+
+**总结**：
+
+- 树层去重的话，需要对数组排序
+
+- 理解本题在同层间去重，不同层不去重的精髓
+
+- 如果是一个集合来求组合的话，就需要startIndex，例如：[77.组合 ]，[216.组合总和III]。
+
+  如果是多个集合取组合，各个集合之间相互不影响，那么就不用startIndex，例如：[17.电话号码的字母组合]
+
+### 六、组合总和III
+
+[216. 组合总和 III - 力扣（Leetcode）](https://leetcode.cn/problems/combination-sum-iii/description/)
+
+找出所有相加之和为 `n` 的 `k` 个数的组合，且满足下列条件：
+
+- 只使用数字1到9
+- 每个数字 **最多使用一次** 
+
+返回 *所有可能的有效组合的列表* 。该列表不能包含相同的组合两次，组合可以以任何顺序返回。
+
+**示例 1:**
+
+```
+输入: k = 3, n = 7
+输出: [[1,2,4]]
+解释:
+1 + 2 + 4 = 7
+没有其他符合的组合了。
+```
+
+
+
+与前面两题的区别
+
+- 组合 **长度限制为 k**
+- 组合中每个数字 **最多使用一次** 
+
+
+
+**思路**
+
+本题k相当于了树的深度，9（因为整个集合就是9个数）就是树的宽度。
+
+例如 k = 2，n = 4的话，就是在集合[1,2,3,4,5,6,7,8,9]中求 k（个数） = 2, n（和） = 4的组合。
+
+选取过程如图：
+
+<img src="https://img-blog.csdnimg.cn/20201123195717975.png" alt="216.组合总和III" style="zoom: 50%;" />
+
+图中，可以看出，只有最后取到集合（1，3）和为4 符合条件。
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<int> path;
+    vector<vector<int>> result;
+    vector<vector<int>> combinationSum3(int k, int n) {
+        backtracking(k, n, 1);
+        return result;
+    }
+private:
+    void backtracking(int k, int n, int startIndex) {
+        if(path.size() == k) {
+            if(accumulate(path.begin(), path.end(), 0) == n) {
+                result.push_back(path);
+            }
+            return ;
+        }
+        for(int i = startIndex; i <= 9; i++) {
+            path.push_back(i);
+            backtracking(k, n, i + 1);
+            path.pop_back();
+        }
+    }
+};
+```
+
+可以做剪枝：
+
+```c++
+//剪枝
+class Solution {
+public:
+    vector<int> path;
+    vector<vector<int>> result;
+    vector<vector<int>> combinationSum3(int k, int n) {
+        backtracking(k, n, 0, 1);
+        return result;
+    }
+private:
+    void backtracking(int k, int target, int sum, int startIndex) {
+        if(sum > target) return ; // 剪枝操作sum > target时，直接返回
+        if(path.size() == k) {
+            if(sum == target) {
+                result.push_back(path);
+            }
+            return ;
+        }
+        for(int i = startIndex; i <= 9 - (k - path.size()) + 1; i++) {  //for循环剪枝
+            path.push_back(i);
+            sum += i;
+            backtracking(k, target, sum, i + 1);
+            path.pop_back();
+            sum -= i;		//处理过程 和 回溯过程是一一对应的，处理有加，回溯就要有减！//
+        }
+    }
+};
+```
+
+### 七、分割回文串
+
+[131. 分割回文串 - 力扣（Leetcode）](https://leetcode.cn/problems/palindrome-partitioning/)
+
+给你一个字符串 `s`，请你将 `s` 分割成一些子串，使每个子串都是 **回文串** 。返回 `s` 所有可能的分割方案。
+
+**回文串** 是正着读和反着读都一样的字符串。
+
+**示例 1：**
+
+```
+输入：s = "aab"
+输出：[["a","a","b"],["aa","b"]]
+```
+
+**示例 2：**
+
+```
+输入：s = "a"
+输出：[["a"]]
+```
+
+**提示：**
+
+- `1 <= s.length <= 16`
+- `s` 仅由小写英文字母组成
+
+
+
+**思路**
+
+**其实切割问题类似组合问题**。
+
+例如对于字符串abcdef：
+
+- 组合问题：选取一个a之后，在bcdef中再去选取第二个，选取b之后在cdef中在选组第三个.....。
+- 切割问题：切割一个a之后，在bcdef中再去切割第二段，切割b之后在cdef中在切割第三段.....。
+
+所以切割问题，也可以抽象为一棵树形结构，如图：
+
+<img src="https://code-thinking.cdn.bcebos.com/pics/131.%E5%88%86%E5%89%B2%E5%9B%9E%E6%96%87%E4%B8%B2.jpg" alt="131.分割回文串" style="zoom:50%;" />
+
+递归用来纵向遍历，for循环用来横向遍历，切割线（就是图中的红线）切割到字符串的结尾位置，说明找到了一个切割方法。
+
+此时可以发现，切割问题的回溯搜索的过程和组合问题的回溯搜索的过程是差不多的。
+
+
+
+**回溯三部曲**
+
+- 递归函数参数
+
+全局变量数组path存放切割后回文的子串，二维数组result存放结果集。 （这两个参数可以放到函数参数里）
+
+本题递归函数参数还需要startIndex，因为切割过的地方，不能重复切割，和组合问题也是保持一致的。
+
+代码如下：
+
+```cpp
+vector<vector<string>> result;
+vector<string> path; // 放已经回文的子串
+void backtracking (const string& s, int startIndex)
+```
+
+- 递归函数终止条件
+
+从树形结构的图中可以看出：切割线切到了字符串最后面，说明找到了一种切割方法，此时就是本层递归的终止终止条件。
+
+```cpp
+void backtracking (const string& s, int startIndex) {
+    // 如果起始位置已经等于s的大小，说明已经找到了一组分割方案了
+    if (startIndex == s.size()) {
+        result.push_back(path);
+        return;
+    }
+}
+```
+
+- 单层搜索的逻辑
+
+**来看看在递归循环，中如何截取子串呢？**
+
+在`for (int i = startIndex; i < s.size(); i++)`循环中，我们 定义了起始位置`startIndex`，那么 `[startIndex, i]` 就是要截取的子串。
+
+首先判断这个子串是不是回文，如果是回文，就加入在`vector<string> path`中，path用来记录切割过的回文子串。
+
+代码如下：
+
+```cpp
+for(int i = startIndex; i < s.length(); i++) {
+       if(!isPalindrome(s, startIndex, i)) {
+           continue;
+       }
+       string str = s.substr(startIndex, i - startIndex + 1);  //注意截取长度的计算: i - startIndex + 1
+       path.push_back(str);
+       backtracking(s, i + 1);     //改变截取的起始位置startIndex, 即N叉树的下一层
+       path.pop_back();
+}
+```
+
+**注意切割过的位置，不能重复切割，所以，backtracking(s, i + 1); 传入下一层的起始位置为i + 1**。
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<vector<string>> result;
+    vector<string> path;
+    vector<vector<string>> partition(string s) {
+        backtracking(s, 0);
+        return result;
+    }
+private:
+    void backtracking(string s, int startIndex) {
+        if(startIndex == s.length()) {
+            result.push_back(path);
+            return ;
+        }
+        for(int i = startIndex; i < s.length(); i++) {
+            if(!isPalindrome(s, startIndex, i)) {
+                continue;
+            }
+            string str = s.substr(startIndex, i - startIndex + 1);  //注意截取长度的计算: i - startIndex + 1
+            path.push_back(str);
+            backtracking(s, i + 1);     //改变截取的起始位置startIndex, 即N叉树的下一层
+            path.pop_back();
+        }
+    }
+    bool isPalindrome(const string& s, int start, int end) {	//判断将要截取的子串是不是回文串
+        for (int i = start, j = end; i < j; i++, j--) {
+            if (s[i] != s[j]) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+### 八、复原 IP 地址
+
+[93. 复原 IP 地址 - 力扣（Leetcode）](https://leetcode.cn/problems/restore-ip-addresses/description/)
+
+**有效 IP 地址** 正好由四个整数（每个整数位于 `0` 到 `255` 之间组成，且不能含有前导 `0`），整数之间用 `'.'` 分隔。
+
+- 例如：`"0.1.2.201"` 和` "192.168.1.1"` 是 **有效** IP 地址，但是 `"0.011.255.245"`、`"192.168.1.312"` 和 `"192.168@1.1"` 是 **无效** IP 地址。
+
+给定一个只包含数字的字符串 `s` ，用以表示一个 IP 地址，返回所有可能的**有效 IP 地址**，这些地址可以通过在 `s` 中插入 `'.'` 来形成。你 **不能** 重新排序或删除 `s` 中的任何数字。你可以按 **任何** 顺序返回答案。
+
+**示例 1：**
+
+```
+输入：s = "25525511135"
+输出：["255.255.11.135","255.255.111.35"]
+```
+
+**思路**：
+
+其实只要意识到这是切割问题，**切割问题就可以使用回溯搜索法把所有可能性搜出来**，和刚做过的[131.分割回文串](https://programmercarl.com/0131.分割回文串.html)就十分类似了。
+
+切割问题可以抽象为树型结构，如图：
+
+<img src="https://img-blog.csdnimg.cn/20201123203735933.png" alt="93.复原IP地址" style="zoom:50%;" />
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<string> result;
+    vector<string> restoreIpAddresses(string s) {
+        if(s.length() < 4 || s.length() > 12) return result;
+        backtracking(s, 0, 0);
+        return result;
+    }
+private:
+    void backtracking(string& s, int startIndex, int pointNum) {
+        if(pointNum == 3) {
+            // 存在第四段子字符串 且 第四段子字符串合法
+            if(startIndex <= s.length() - 1 && isValid(s, startIndex, s.length() - 1)) {
+                result.push_back(s);
+            }
+            return ;
+        }
+        for(int i = startIndex; i < s.length(); i++) {
+            if(!isValid(s, startIndex, i)) {   // 判断 [startIndex,i] 这个区间的子串是否合法
+                continue;
+            }
+            s.insert(s.begin() + i + 1, '.'); //insert(pos, str); 在原串下标为pos的字符'前'插入字符串str
+            pointNum++; 
+            backtracking(s, i + 2, pointNum);   //插入逗点之后下一个子串的起始位置为i+2
+            pointNum--;
+            //str.erase(pos, n); 删除从pos开始的n个字符
+            //str.erase(first, last); 删除从first到last之间的字符（first和last都是迭代器）
+            s.erase(s.begin() + i + 1);
+        }
+    }
+    // 判断子串是否合法
+    bool isValid(string s, int start, int end) {
+        if(s[start] == '0' && start != end) return false;   //①'0'开头无效
+        string num = s.substr(start, end - start + 1);
+        if(atoi(num.c_str()) > 255) return false; //②截取数字大于255无效
+        while(start <= end) {
+            if(s[start] < '0' || s[start] > '9') return false;  //③无效字符
+            start++;
+        }
+        return true;
+    }
+};
+```
+
+### 九、子集
+
+[78. 子集 - 力扣（Leetcode）](https://leetcode.cn/problems/subsets/description/)
+
+给你一个整数数组 `nums` ，数组中的元素 **互不相同** 。返回该数组所有可能的子集（幂集）。
+
+解集 **不能** 包含重复的子集。你可以按 **任意顺序** 返回解集。
+
+**示例 1：**
+
+```
+输入：nums = [1,2,3]
+输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+```
+
+**提示：**
+
+- `1 <= nums.length <= 10`
+- `-10 <= nums[i] <= 10`
+- `nums` 中的所有元素 **互不相同**
+
+
+
+**思路**
+
+其实子集也是一种组合问题，因为它的集合是无序的，子集{1,2} 和 子集{2,1}是一样的。
+
+**那么既然是无序，取过的元素不会重复取，写回溯算法的时候，for就要从startIndex开始，而不是从0开始！**
+
+有同学问了，什么时候for可以从0开始呢？
+
+求排列问题的时候，就要从0开始，因为集合是有序的，{1, 2} 和{2, 1}是两个集合，排列问题我们后续的文章就会讲到的。
+
+以示例中nums = [1,2,3]为例把求子集抽象为树型结构，如下：
+
+<img src="https://img-blog.csdnimg.cn/202011232041348.png" alt="78.子集" style="zoom:50%;" />
+
+从图中红线部分，可以看出**遍历这个树的时候，把所有节点都记录下来，就是要求的子集集合**。
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<vector<int>> subsets(vector<int>& nums) {
+        backtracking(nums, 0);
+        return result;
+    }
+private:
+    void backtracking(vector<int>& nums, int startIndex) {
+        result.push_back(path);
+        if(path.size() == nums.size()) {
+            return ;
+        }
+        for(int i = startIndex; i < nums.size(); i++) {
+            path.push_back(nums[i]);
+            backtracking(nums, i + 1);
+            path.pop_back();
+        }
+    }
+};
+```
+
+### 十、集合Ⅱ
+
+[90. 子集 II - 力扣（Leetcode）](https://leetcode.cn/problems/subsets-ii/description/)
+
+给你一个整数数组 `nums` ，其中可能包含重复元素，请你返回该数组所有可能的子集（幂集）。
+
+解集 **不能** 包含重复的子集。返回的解集中，子集可以按 **任意顺序** 排列。
+
+**示例 1：**
+
+```
+输入：nums = [1,2,2]
+输出：[[],[1],[1,2],[1,2,2],[2],[2,2]]
+```
+
+
+
+**思路**
+
+**理解“树层去重”和“树枝去重”非常重要**。
+
+用示例中的[1, 2, 2] 来举例，如图所示： （**注意去重需要先对集合排序**）
+
+<img src="https://img-blog.csdnimg.cn/20201124195411977.png" alt="90.子集II" style="zoom:50%;" />
+
+从图中可以看出，同一树层上重复取2 就要过滤掉，同一树枝上就可以重复取2，因为同一树枝上元素的集合才是唯一子集！
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<vector<int>> subsetsWithDup(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        backtracking(nums, 0);
+        return result;
+    }
+private:
+    void backtracking(vector<int>& nums, int startIndex) {
+        result.push_back(path);
+        if(path.size() == nums.size()) {
+            return ;
+        }
+        for(int i = startIndex; i < nums.size(); i++) {
+            if(startIndex < i && nums[i - 1] == nums[i]) continue;  //去重原理与组合Ⅱ相同
+            path.push_back(nums[i]);
+            backtracking(nums, i + 1);
+            path.pop_back();
+        }
+    }
+};
+```
+
+### 十一、递增子序列
+
+[491. 递增子序列 - 力扣（Leetcode）](https://leetcode.cn/problems/increasing-subsequences/)
+
+给你一个整数数组 `nums` ，找出并返回所有该数组中不同的递增子序列，递增子序列中 **至少有两个元素** 。你可以按 **任意顺序** 返回答案。
+
+数组中可能含有重复元素，如出现两个整数相等，也可以视作递增序列的一种特殊情况。
+
+**示例 1：**
+
+```
+输入：nums = [4,6,7,7]
+输出：[[4,6],[4,6,7],[4,6,7,7],[4,7],[4,7,7],[6,7],[6,7,7],[7,7]]
+```
+
+**思路**
+
+这个递增子序列比较像是取有序的子集。而且本题也要求不能有相同的递增子序列。
+
+在**[子集Ⅱ]**中我们是通过排序，再加一个标记数组来达到去重的目的。
+
+而本题求**自增子序列**，**是不能对原数组经行排序的**，排完序的数组都是自增子序列了。
+
+**所以不能使用之前的去重逻辑！**
+
+本题给出的示例，还是一个有序数组 [4, 6, 7, 7]，这更容易误导大家按照排序的思路去做了。
+
+为了有鲜明的对比，我用[4, 7, 6, 7]这个数组来举例，抽象为树形结构如图：
+
+<img src="https://img-blog.csdnimg.cn/20201124200229824.png" alt="491. 递增子序列1" style="zoom:50%;" />
+
+- 递归函数参数
+
+本题求子序列，很明显一个元素不能重复使用，所以需要startIndex，调整下一层递归的起始位置。
+
+代码如下：
+
+```cpp
+vector<vector<int>> result;
+vector<int> path;
+void backtracking(vector<int>& nums, int startIndex)
+```
+
+- 终止条件
+
+本题其实类似求子集问题，也是要遍历树形结构找每一个节点，所以和**[子集]**一样，可以不加终止条件，startIndex每次都会加1，并不会无限递归。
+
+但本题收集结果有所不同，题目要求递增子序列大小至少为2，所以代码如下：
+
+```cpp
+if (path.size() > 1) {
+    result.push_back(path);
+}
+// if(startIndex == nums.size()) return ; //这句可以不加,程序在for循环中退出
+```
+
+- 单层搜索逻辑
+
+在图中可以看出，**同一父节点下的同层上使用过的元素就不能在使用了**。那么单层搜索代码如下：
+
+```cpp
+unordered_set<int> uset; // 使用set来对本层元素进行去重
+for (int i = startIndex; i < nums.size(); i++) {
+    if ((!path.empty() && nums[i] < path.back())
+            || uset.find(nums[i]) != uset.end()) {
+            continue;
+    }
+    uset.insert(nums[i]); // 记录这个元素在本层用过了，本层后面不能再用了
+    path.push_back(nums[i]);
+    backtracking(nums, i + 1);
+    path.pop_back();
+}
+```
+
+**对于已经习惯写回溯的同学，看到递归函数上面的`uset.insert(nums[i]);`，下面却没有对应的pop之类的操作，应该很不习惯吧，哈哈**
+
+**这也是需要注意的点，`unordered_set<int> uset;` 是记录本层元素是否重复使用，新的一层uset都会重新定义（清空），所以要知道uset只负责本层！**
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<vector<int>> findSubsequences(vector<int>& nums) {
+        backtracking(nums, 0);
+        return result;
+    }
+private:
+    void backtracking(vector<int>& nums, int startIndex) {
+        if(path.size() > 1) {
+            result.push_back(path);
+        }
+        // if(startIndex == nums.size()) return ; //这句可以不加,程序在for循环中退出
+        unordered_set<int> uset; // 记录本层已访问过的元素,用于本层元素的去重
+        for(int i = startIndex; i < nums.size(); i++) {
+            if(!path.empty() && nums[i] < path.back()   //本层元素不小于相邻的上层元素(满足path是递增的)
+                || uset.count(nums[i]) != 0) {          //本层元素不能重复,去重
+                    continue;
+            }
+            uset.insert(nums[i]);
+            path.push_back(nums[i]);
+            backtracking(nums, i + 1);
+            path.pop_back();
+        }
+    }
+};
+```
+
+### 十二、全排列
+
+[46. 全排列 - 力扣（Leetcode）](https://leetcode.cn/problems/permutations/)
+
+给定一个不含重复数字的数组 `nums` ，返回其 *所有可能的全排列* 。你可以 **按任意顺序** 返回答案。
+
+**示例 1：**
+
+```
+输入：nums = [1,2,3]
+输出：[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+```
+
+**示例 2：**
+
+```
+输入：nums = [0,1]
+输出：[[0,1],[1,0]]
+```
+
+**思路**
+
+前面看过了组合问题，接下来看一看排列问题。相信这个排列问题就算是让你用for循环暴力把结果搜索出来，这个暴力也不是很好写。
+
+以[1,2,3]为例，抽象成树形结构如下：
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20211027181706.png" alt="46.全排列" style="zoom:50%;" />
+
+**回溯三部曲**
+
+- 递归函数参数
+
+**首先排列是有序的，也就是说 [1,2] 和 [2,1] 是两个集合，这和之前分析的子集以及组合所不同的地方**。
+
+可以看出元素1在[1,2]中已经使用过了，但是在[2,1]中还要在使用一次1，所以处理排列问题就不用使用startIndex了。
+
+但排列问题需要一个used数组，标记已经选择的元素，如图橘黄色部分所示:
+
+<img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20211027181706.png" alt="46.全排列" style="zoom:50%;" />
+
+代码如下：
+
+```cpp
+vector<vector<int>> result;
+vector<int> path;
+void backtracking (vector<int>& nums, vector<bool>& used)
+```
+
+- 递归终止条件
+
+<img src="https://img-blog.csdnimg.cn/20201209174225145.png" alt="46.全排列" style="zoom:50%;" />
+
+可以看出叶子节点，就是收割结果的地方。
+
+那么什么时候，算是到达叶子节点呢？
+
+当收集元素的数组path的大小达到和nums数组一样大的时候，说明找到了一个全排列，也表示到达了叶子节点。
+
+代码如下：
+
+```cpp
+// 此时说明找到了一组
+if (path.size() == nums.size()) {
+    result.push_back(path);
+    return;
+}
+```
+
+- 单层搜索的逻辑
+
+这里和[77.组合问题 ](https://programmercarl.com/0077.组合.html)、[131.切割问题 ](https://programmercarl.com/0131.分割回文串.html)和[78.子集问题 ](https://programmercarl.com/0078.子集.html)最大的不同就是for循环里不用startIndex了。
+
+因为排列问题，每次都要从头开始搜索，例如元素1在[1,2]中已经使用过了，但是在[2,1]中还要再使用一次1。
+
+**而used数组，其实就是记录此时path里都有哪些元素使用了，一个排列里一个元素只能使用一次**。
+
+代码如下：
+
+```cpp
+for (int i = 0; i < nums.size(); i++) {
+    if (used[i] == true) continue; // path里已经收录的元素，直接跳过
+    used[i] = true;
+    path.push_back(nums[i]);
+    backtracking(nums, used);
+    path.pop_back();
+    used[i] = false;
+}
+```
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<vector<int>> permute(vector<int>& nums) {
+        vector<bool> used(nums.size(), false); //去重用
+        backtracking(nums, used);
+        return result;
+    }
+private:
+    void backtracking(vector<int>& nums, vector<bool> used) {
+        if(path.size() == nums.size()) {
+            result.push_back(path);
+            return ;
+        }
+        for(int i = 0; i < nums.size(); i++) {
+            if(used[i] == true) continue;   // used里已经收录的元素，直接跳过
+            used[i] = true;
+            used.push_back(nums[i]);
+            path.push_back(nums[i]);
+            backtracking(nums, used);   //这里的used在不同的树层间传参，防止不同层间元素重复.区别于同层间去重
+            path.pop_back();
+            used[i] = false;
+        }
+    }
+};
+```
+
+### 十三、全排列Ⅱ
+
+[47. 全排列 II - 力扣（Leetcode）](https://leetcode.cn/problems/permutations-ii/description/)
+
+给定一个可包含重复数字的序列 `nums` ，***按任意顺序*** 返回所有不重复的全排列。
+
+**示例 1：**
+
+```
+输入：nums = [1,1,2]
+输出：
+[[1,1,2],
+ [1,2,1],
+ [2,1,1]]
+```
+
+这一题在[46. 全排列 - 力扣（Leetcode）](https://leetcode.cn/problems/permutations/) 全排列 的基础上增加了 **序列中的元素可重复** 这一条件，但要求：返回的结果又不能有重复元素。
+
+思路是：在遍历的过程中，一边遍历一遍检测，**在会产生重复结果集的地方剪枝**。
+
+
+
+一个比较容易想到的办法是在结果集中去重。但是问题来了，这些结果集的元素是一个又一个列表，对列表去重不像用哈希表对基本元素去重那样容易。
+
+如果要比较两个列表是否一样，一个容易想到的办法是对列表分别排序，然后逐个比对。既然要排序，我们就可以 **在搜索之前就对候选数组排序**，一旦发现某个分支搜索下去可能搜索到重复的元素就停止搜索，这样结果集中不会包含重复列表。
+
+画出树形结构如下：重点想象深度优先遍历在这棵树上执行的过程，哪些地方遍历下去一定会产生重复，这些地方的状态的特点是什么？ **对比图中标注 ① 和 ② 的地方。相同点是：这一次搜索的起点和上一次搜索的起点一样。不同点是：**
+
+- **标注 ① 的地方上一次搜索的相同的数刚刚被撤销；**
+- **标注 ② 的地方上一次搜索的相同的数刚刚被使用。**
+
+<img src="E:\Postgraduate\Study\Leetcode\images\全排列Ⅱ.png" alt="全排列Ⅱ" style="zoom:50%;" />
+
+
+产生重复结点的地方，正是图中标注了「剪刀」，且被绿色框框住的地方。
+
+大家也可以把第 2 个 `1` 加上 `'` ，即 `[1, 1', 2]` 去想象这个搜索的过程。只要遇到起点一样，就有可能产生重复。这里还有一个很细节的地方：
+
+在图中 ② 处，搜索的数也和上一次一样，但是上一次的 `1` 还在使用中；
+**在图中 ① 处，搜索的数也和上一次一样，但是上一次的 `1` 刚刚被撤销，正是因为刚被撤销，下面的搜索中还会使用到，因此会产生重复，剪掉的就应该是这样的分支。**
+**代码实现方面，在第 46 题的基础上，要加上这样一段代码：**
+
+```c++
+if (i > 0 && nums[i] == nums[i - 1] && !used[i - 1]) {
+    continue;
+}
+```
+
+这段代码就能检测到标注为 ① 的两个结点，跳过它们。
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        vector<bool> used(nums.size(), false);
+        backtracking(nums, used);
+        return result;
+    }
+private:
+    void backtracking(vector<int>& nums, vector<bool> used) {
+        if(path.size() == nums.size()) {
+            result.push_back(path);
+        }
+        for(int i = 0; i < nums.size(); i++) {
+            //当前值用过了 或 
+            //当前值等于前一个值： 两种情况：
+            //1 nums[i-1] 没用过 说明回溯到了同一层 此时接着用num[i] 则会与 同层用num[i-1] 重复
+            //2 nums[i-1] 用过了 说明此时在num[i-1]的下一层 相等不会重复
+            if(used[i] || (i>0 && nums[i] == nums[i-1] && !used[i-1])) continue;
+            // if(i > 0 && nums[i - 1] == nums[i]) continue;   //这么写，会把不同树层重复数字的情况也去掉,如[1 1 2]
+            used[i] = true;
+            path.push_back(nums[i]);
+            backtracking(nums,used);
+            path.pop_back();
+            used[i] = false;
+        }
+    }
+};
+```
+
+复杂度分析：（理由同第 46 题，重复元素越多，剪枝越多。但是计算复杂度的时候需要考虑最差情况。）
+
+时间复杂度：O(N×N!)，这里 N 为数组的长度。
+空间复杂度：O(N×N!)。
+
+# C++杂项
+
+
+
+#### **find**()方法
+
+不同于map、set对应的六种数据类型有find方法，vector本身是没有find这一方法，其find是依靠algorithm来实现的。
+
+对于set、map类型：
+
+```c++
+set<T> st; //declaration
+set<T>::iterator it; //iterator declaration
+it=st.find( const T item); //find
+```
+
+对于vector类型，依靠algorithm来实现：
+
+```c++
+vector<int>::iterator it = find(vec.begin(), vec.end(), num)
+```
+
+#### count()方法
+
+**map**
+
+**map::count()**是C++ STL中的内置函数，**如果在映射容器中存在带有键K的元素，则该函数返回1**。如果容器中不存在键为K的元素，则返回0。
+
+**用法:**
+
+```c++
+map<T>::iterator it = map_name.count(key k)
+```
+
+**参数：**该函数接受强制性参数k，该参数指定要在Map容器中搜索的键。
+
+**返回值：**该函数返回键K在Map容器中的出现次数。如果 key 存在于容器中，则返回1，因为映射仅包含唯一 key 。如果键在Map容器中不存在，则返回0。
+
+**set**
+
+**set::count()**是C++ STL中的内置函数，它返回元素在集合中出现的次数。**由于set容器仅包含唯一元素，因此只能返回1或0**。
+
+**用法:**
+
+```c++
+set<T>::iterator it = set_name.count(element) 
+```
+
+**参数：**该函数接受一个强制性参数element ，该元素指定要返回其计数的元素。
+
+**返回值：**该函数返回1或0，因为该集合仅包含唯一元素。如果设置的容器中存在该值，则返回1。如果容器中不存在它，则返回0。
+
+**vector**
+
+vector**本身是没有count()这一方法**，其find是依靠algorithm来实现的。
+
+```c++
+int myints[] = {10,20,30,30,20,10,10,20};   // 8 elements
+std::vector<int> myvector (myints, myints+8);
+// counting elements in container:
+int mycount = std::count (myvector.begin(), myvector.end(), 20);
+```
+
+#### count_if()方法
+
+C++ 函数 **std::algorithm::count_if()** 返回满足条件的范围中值的出现次数。
+
+```c++
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+bool predicate(int n) {
+   return (n > 3);
+}
+
+int main(void) {
+   vector<int> v = {1, 2, 3, 4, 5};
+   int cnt;
+
+   cnt = count_if(v.begin(), v.end(), predicate);
+
+   cout << "There are " << cnt << " numbers are greater that 3." << endl;
+
+   return 0;
+}
+```
+
+让我们编译并运行上面的程序，这将产生以下结果 −
+
+```c++
+There are 2 numbers are greater that 3.
+```
