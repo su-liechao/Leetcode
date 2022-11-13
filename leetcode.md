@@ -6932,9 +6932,1077 @@ private:
 时间复杂度：O(N×N!)，这里 N 为数组的长度。
 空间复杂度：O(N×N!)。
 
+### 十四、重新安排行程
+
+[332. 重新安排行程 - 力扣（Leetcode）](https://leetcode.cn/problems/reconstruct-itinerary/description/)
+
+给你一份航线列表 `tickets` ，其中 `tickets[i] = [fromi, toi]` 表示飞机出发和降落的机场地点。请你对该行程进行重新规划排序。
+
+所有这些机票都属于一个从 `JFK`（肯尼迪国际机场）出发的先生，所以该行程必须从 `JFK` 开始。如果存在多种有效的行程，请你按字典排序返回最小的行程组合。
+
+- 例如，行程 `["JFK", "LGA"]` 与 `["JFK", "LGB"]` 相比就更小，排序更靠前。
+
+假定所有机票至少存在一种合理的行程。且所有的机票 必须都用一次 且 只能用一次。
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2021/03/14/itinerary1-graph.jpg)
+
+```
+输入：tickets = [["MUC","LHR"],["JFK","MUC"],["SFO","SJC"],["LHR","SFO"]]
+输出：["JFK","MUC","LHR","SFO","SJC"]
+```
+
+
+
+参考：[代码随想录 (programmercarl.com)](https://www.programmercarl.com/0332.重新安排行程.html#思路)
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    vector<string> ans;
+    bool backtracking(vector<vector<string>>& tickets,vector<bool>& vis, string from){
+        //一般函数返回值都是void,这里是bool是因为我们只需要找到一个行程.当找到时回溯函数会一直返回
+        if(ans.size() == tickets.size() + 1){
+            return true;
+        }
+        string to;
+        for(int i = 0; i < tickets.size(); i++){
+            if(tickets[i][0] == from && vis[i] == false){
+                to = tickets[i][1];
+                vis[i] = true;
+                ans.push_back(to);
+                if(backtracking(tickets, vis, to)){
+                    return true;
+                }
+                vis[i] = false; //向上回溯
+                ans.pop_back();
+            }
+        }
+        return false;
+    }
+    static bool cmp(vector<string>& x, vector<string>& y){  //按照升序的排序规则
+        return x[1] < y[1];
+    }
+    vector<string> findItinerary(vector<vector<string>>& tickets) {
+        vector<bool> vis(tickets.size(), false);
+        sort(tickets.begin(), tickets.end(), cmp);
+        ans.push_back("JFK");
+        backtracking(tickets, vis, "JFK");
+        return ans;
+    }
+};
+```
+
+
+
+## 贪心算法
+
+**贪心的本质是选择每一阶段的局部最优，从而达到全局最优。**
+
+### 1.分发饼干
+
+[455. 分发饼干 - 力扣（Leetcode）](https://leetcode.cn/problems/assign-cookies/)
+
+**思路**
+
+为了满足更多的小孩，就不要造成饼干尺寸的浪费。
+
+大尺寸的饼干既可以满足胃口大的孩子也可以满足胃口小的孩子，那么就应该优先满足胃口大的。
+
+**这里的局部最优就是大饼干喂给胃口大的，充分利用饼干尺寸喂饱一个，全局最优就是喂饱尽可能多的小孩**。
+
+可以尝试使用贪心策略，先将饼干数组和小孩数组排序。
+
+然后从后向前遍历小孩数组，用大饼干优先满足胃口大的，并统计满足小孩数量。
+
+如图：
+
+<img src="https://img-blog.csdnimg.cn/20201123161809624.png" alt="455.分发饼干" style="zoom:50%;" />
+
+这个例子可以看出饼干9只有喂给胃口为7的小孩，这样才是整体最优解，并想不出反例，那么就可以撸代码了。
+
+C++代码整体如下：
+
+```cpp
+// 时间复杂度：O(nlogn)
+// 空间复杂度：O(1)
+class Solution {
+public:
+    int findContentChildren(vector<int>& g, vector<int>& s) {
+        sort(g.begin(), g.end());
+        sort(s.begin(), s.end());
+        int index = s.size() - 1; // 饼干数组的下标
+        int result = 0;
+        for (int i = g.size() - 1; i >= 0; i--) {
+            if (index >= 0 && s[index] >= g[i]) {
+                result++;
+                index--;
+            }
+        }
+        return result;
+    }
+};
+```
+
+从代码中可以看出我用了一个index来控制饼干数组的遍历，遍历饼干并没有再起一个for循环，而是采用自减的方式，这也是常用的技巧。
+
+### 2.摆动序列
+
+[376. 摆动序列 - 力扣（Leetcode）](https://leetcode.cn/problems/wiggle-subsequence/description/)
+
+**思路**
+
+本题要求通过从原始序列中删除一些（也可以不删除）元素来获得子序列，剩下的元素保持其原始顺序。
+
+相信这么一说吓退不少同学，这要求最大摆动序列又可以修改数组，这得如何修改呢？
+
+来分析一下，要求删除元素使其达到最大摆动序列，应该删除什么元素呢？
+
+用示例二来举例，如图所示：
+
+<img src="https://img-blog.csdnimg.cn/20201124174327597.png" alt="376.摆动序列" style="zoom:50%;" />
+
+**局部最优：删除单调坡度上的节点（不包括单调坡度两端的节点），那么这个坡度就可以有两个局部峰值**。
+
+**整体最优：整个序列有最多的局部峰值，从而达到最长摆动序列**。
+
+局部最优推出全局最优，并举不出反例，那么试试贪心！
+
+（为方便表述，以下说的峰值都是指局部峰值）
+
+**实际操作上，其实连删除的操作都不用做，因为题目要求的是最长摆动子序列的长度，所以只需要统计数组的峰值数量就可以了（相当于是删除单一坡度上的节点，然后统计长度）**
+
+**这就是贪心所贪的地方，让峰值尽可能的保持峰值，然后删除单一坡度上的节点**。
+
+本题代码实现中，还有一些技巧，例如统计峰值的时候，数组最左面和最右面是最不好统计的。
+
+例如序列[2,5]，它的峰值数量是2，如果靠统计差值来计算峰值个数就需要考虑数组最左面和最右面的特殊情况。
+
+所以可以针对序列[2,5]，可以假设为[2,2,5]，这样它就有坡度了即preDiff = 0，如图：
+
+![376.摆动序列1](https://img-blog.csdnimg.cn/20201124174357612.png)
+
+针对以上情形，result初始为1（默认最右面有一个峰值），此时curDiff > 0 && preDiff <= 0，那么result++（计算了左面的峰值），最后得到的result就是2（峰值个数为2即摆动序列长度为2）
+
+C++代码如下（和上图是对应的逻辑）：
+
+```cpp
+class Solution {
+public:
+    int wiggleMaxLength(vector<int>& nums) {
+        if (nums.size() <= 1) return nums.size();
+        int curDiff = 0; // 当前一对差值
+        int preDiff = 0; // 前一对差值
+        int result = 1;  // 记录峰值个数，序列默认序列最右边有一个峰值
+        for (int i = 0; i < nums.size() - 1; i++) {
+            curDiff = nums[i + 1] - nums[i];
+            // 出现峰值
+            if ((curDiff > 0 && preDiff <= 0) || (preDiff >= 0 && curDiff < 0)) {
+                result++;
+                preDiff = curDiff;
+            }
+        }
+        return result;
+    }
+};
+```
+
+- 时间复杂度：O(n)
+- 空间复杂度：O(1)
+
+**贪心到底贪在哪里**：上升的时候尽量上升的最高，下降的时候尽量下降到最低。
+
+### 3.最大子数组和
+
+[53. 最大子数组和 - 力扣（Leetcode）](https://leetcode.cn/problems/maximum-subarray/description/)
+
+给你一个整数数组 `nums` ，请你找出一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
+
+**子数组** 是数组中的一个连续部分。
+
+**示例 1：**
+
+```
+输入：nums = [-2,1,-3,4,-1,2,1,-5,4]
+输出：6
+解释：连续子数组 [4,-1,2,1] 的和最大，为 6 。
+```
+
+**思路**
+
+**贪心贪的是哪里呢？**
+
+如果 -2 1 在一起，计算起点的时候，一定是从1开始计算，因为负数只会拉低总和，这就是贪心贪的地方！
+
+局部最优：**当前“连续和”为负数的时候立刻放弃**，**从下一个元素重新计算“连续和”**，**因为负数加上下一个元素 “连续和”只会越来越小**。
+
+全局最优：选取最大“连续和”
+
+**局部最优的情况下，并记录最大的“连续和”，可以推出全局最优**。
+
+从代码角度上来讲：遍历nums，从头开始用count累积，如果count一旦加上nums[i]变为负数，那么就应该从nums[i+1]开始从0累积count了，因为已经变为负数的count，只会拖累总和。
+
+**这相当于是暴力解法中的不断调整最大子序和区间的起始位置**。
+
+**那有同学问了，区间终止位置不用调整么？ 如何才能得到最大“连续和”呢？**
+
+区间的终止位置，其实就是如果count取到最大值了，及时记录下来了。例如如下代码：
+
+```c++
+if (count > result) result = count;
+```
+
+**这样相当于是用result记录最大子序和区间和（变相的算是调整了终止位置）**。
+
+如动画所示：
+
+![53.最大子序和](https://code-thinking.cdn.bcebos.com/gifs/53.%E6%9C%80%E5%A4%A7%E5%AD%90%E5%BA%8F%E5%92%8C.gif)
+
+红色的起始位置就是贪心每次取count为正数的时候，开始一个区间的统计。
+
+```c++
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        if(nums.size() == 1) return nums[0];
+        int max_sum = INT_MIN;
+        int count = 0;
+        for(int i = 0; i < nums.size(); i++) {
+            count += nums[i];
+            if(count > max_sum) {   // 取区间累计的最大值（相当于不断确定最大子序终止位置）
+                max_sum = count;
+            }
+            if(count < 0) {
+                count = 0;    //// 丢弃累积和，相当于重置最大子序起始位置，因为遇到负数一定是拉低总和
+            }
+        }
+        return max_sum;
+    }
+};
+```
+
+- 时间复杂度：O(n)
+- 空间复杂度：O(1)
+
+
+
+
+
+### 4.买卖股票的最佳时机系列
+
+股票问题参考解法：
+
+[121. 买卖股票题目汇总 - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/solutions/38477/bao-li-mei-ju-dong-tai-gui-hua-chai-fen-si-xiang-b/)
+
+[121. 买卖股票的最佳时机 - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/solutions/8753/yi-ge-fang-fa-tuan-mie-6-dao-gu-piao-wen-ti-by-l-3/)
+
+六个股票问题是根据 `k` 的值进行分类的，其中 `k` 是允许的**最大交易次数**。最后两个问题有附加限制，包括「冷冻期」和「手续费」。通解可以应用于每个股票问题。
+
+#### 问题分析
+
+首先介绍一些符号：
+
+- 用 `n` 表示股票价格数组的长度；
+- 用 `i` 表示第 `i` 天（`i` 的取值范围是 `0` 到 `n - 1`）；
+- 用 `k` 表示允许的最大交易次数；
+- 用 `T[i][k]` 表示在第 `i` 天**结束时**，最多进行 `k` 次交易的情况下可以获得的最大收益。
+
+​		基准情况是显而易见的：`T[-1][k] = T[i][0] = 0`，表示没有进行股票交易时没有收益（注意第一天对应 `i = 0`，因此 `i = -1` 表示没有股票交易）。现在如果可以将 `T[i][k]` 关联到子问题，例如 `T[i - 1][k]、T[i][k - 1]、T[i - 1][k - 1]` 等子问题，就能得到状态转移方程，并对这个问题求解。如何得到状态转移方程呢？
+
+​		最直接的办法是看第 `i` 天可能的操作。有多少个选项？答案是三个：买入、卖出、休息。应该选择哪个操作？答案是：并不知道哪个操作是最好的，但是可以通过计算得到选择每个操作可以得到的最大收益。假设没有别的限制条件，则可以尝试每一种操作，并选择可以最大化收益的一种操作。但是，题目中确实有限制条件，规定不能同时进行多次交易，因此如果决定在第 `i` 天买入，在买入之前必须持有 `0` 份股票，如果决定在第 `i` 天卖出，在卖出之前必须恰好持有 `1` 份股票。持有股票的数量是上文提及到的隐藏因素，该因素影响第 `i` 天可以进行的操作，进而影响最大收益。
+
+因此对 `T[i][k]` 的定义需要分成两项：
+
+- `T[i][k][0]` 表示在第 `i` 天结束时，**最多**进行 `k` 次交易且在进行操作后持有 `0` 份股票的情况下可以获得的最大收益；
+- `T[i][k][1]` 表示在第 `i` 天结束时，**最多**进行 `k` 次交易且在进行操作后持有 `1` 份股票的情况下可以获得的最大收益。
+
+使用新的状态表示之后，可以得到基准情况和状态转移方程。
+
+基准情况：
+
+```c++
+T[-1][k][0] = 0, T[-1][k][1] = -Infinity
+T[i][0][0] = 0, T[i][0][1] = -Infinity
+```
+
+状态转移方程：
+
+```c++
+T[i][k][0] = max(T[i - 1][k][0], T[i - 1][k][1] + prices[i])// i-1->i时，k在卖出时不变化，但持有数量-1
+T[i][k][1] = max(T[i - 1][k][1], T[i - 1][k - 1][0] - prices[i])// i-1->i时，k只有在买入时+1，此时持有数量也+1
+```
+
+​		基准情况中，`T[-1][k][0] = T[i][0][0] = 0` 的含义和上文相同，`T[-1][k][1] = T[i][0][1] = -Infinity` 的含义是在没有进行股票交易时不允许持有股票。
+
+​		对于状态转移方程中的 `T[i][k][0]`，第 `i` 天进行的操作只能是休息或卖出，因为在第 `i` 天结束时持有的股票数量是 `0`。`T[i - 1][k][0]` 是休息操作可以得到的最大收益，`T[i - 1][k][1] + prices[i]` 是卖出操作可以得到的最大收益。注意到允许的最大交易次数是不变的，因为每次交易包含两次成对的操作，买入和卖出。**只有买入操作会改变允许的最大交易次数**。
+
+​		对于状态转移方程中的 `T[i][k][1]`，第 `i` 天进行的操作只能是休息或买入，因为在第 `i` 天结束时持有的股票数量是 `1`。`T[i - 1][k][1]` 是休息操作可以得到的最大收益，`T[i - 1][k - 1][0] - prices[i]` 是买入操作可以得到的最大收益。注意到允许的最大交易次数减少了一次，因为每次买入操作会使用一次交易。
+
+​		为了得到最后一天结束时的最大收益，可以遍历股票价格数组，根据状态转移方程计算 `T[i][k][0]` 和 `T[i][k][1]` 的值。最终答案是 `T[n - 1][k][0]`，因为结束时持有 `0` 份股票的收益一定大于持有 `1` 份股票的收益。
+
+
+
+#### 情况一：k = 1
+
+[121. 买卖股票的最佳时机 - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/solutions/)
+
+给定一个数组 `prices` ，它的第 `i` 个元素 `prices[i]` 表示一支给定股票第 `i` 天的价格。
+
+你只能选择 **某一天** 买入这只股票，并选择在 **未来的某一个不同的日子** 卖出该股票。设计一个算法来计算你所能获取的最大利润。
+
+返回你可以从这笔交易中获取的最大利润。如果你不能获取任何利润，返回 `0` 。
+
+**示例 1：**
+
+```
+输入：[7,1,5,3,6,4]
+输出：5
+解释：在第 2 天（股票价格 = 1）的时候买入，在第 5 天（股票价格 = 6）的时候卖出，最大利润 = 6-1 = 5 。
+     注意利润不能是 7-1 = 6, 因为卖出价格需要大于买入价格；同时，你不能在买入前卖出股票。
+```
+
+**贪心**
+
+若在前 i 天选择买入，若想达到最高利润，则一定选择价格最低的交易日买入。考虑根据此贪心思想，遍历价格列表 prices 并执行两步：
+
+- 更新前 i 天的最低价格，即最低买入成本 cost；
+- 更新前 i 天的最高利润 profit ，即选择「前 i−1 天最高利润 profit 」和「第 i 天卖出的最高利润 price - cost 」中的最大值 ；
+
+参考题解：[121. 买卖股票的最佳时机 - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/solutions/1692872/by-jyd-cu90/)
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int profit = 0; //记录最大利润
+        int cost = INT_MAX; //记录最小支出
+        for(int price : prices) {
+            cost = min(cost, price);
+            profit = max(profit, price - cost);
+        }
+        return profit;
+    }
+};
+```
+
+**动态规划**
+
+对于情况一，每天有两个未知变量：`T[i][1][0]` 和 `T[i][1][1]`，状态转移方程如下：
+
+```c++
+T[i][1][0] = max(T[i - 1][1][0], T[i - 1][1][1] + prices[i])
+T[i][1][1] = max(T[i - 1][1][1], T[i - 1][0][0] - prices[i]) = max(T[i - 1][1][1], -prices[i])
+```
+
+第二个状态转移方程利用了 `T[i][0][0] = 0`。
+
+根据上述状态转移方程，可以写出时间复杂度为 `O(n)`和空间复杂度为 `O(n)` 的解法。
+
+```text
+原型：
+dp[i][1][0] = max(dp[i - 1][1][0], dp[i - 1][1][1] + prices[i])
+dp[i][1][1] = max(dp[i - 1][1][1], dp[i - 1][0][0] - prices[i]) 	//dp[i - 1][0][0]=0，k全为1
+化简为：
+dp[i][0] = max(dp[i - 1][0], dp[i - 1][1] + prices[i]);
+dp[i][1] = max(dp[i - 1][1], -prices[i]);
+
+第0天的base case:
+dp[0][0] = max(dp[-1][0], dp[-1][1] + prices[0]) = dp[-1][0] = 0  (其中dp[-1][1] = -∞)
+dp[0][1] = max(dp[-1][1], dp[-1][0] - prices[0]) = dp[-1][0] - prices[0] = -prices[0] (其中dp[-1][0] = -∞)
+```
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        vector<vector<int>> dp(n, vector<int>(2));
+        dp[0][0] = 0, dp[0][1] = -prices[0];
+        for (int i = 1; i < n; i++) {
+            dp[i][0] = max(dp[i - 1][0], dp[i - 1][1] + prices[i]);
+            dp[i][1] = max(dp[i - 1][1], -prices[i]);
+        }
+        return dp[n-1][0];
+    }
+};
+```
+
+如果注意到第 `i` 天的最大收益只和第 `i - 1` 天的最大收益相关，空间复杂度可以降到 O(1)。
+
+```c++
+//空间优化
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        int dp0_0 = 0, dp0_1 = -prices[0];
+        for (int i = 1; i < n; i++) {
+            dp0_0 = max(dp0_0, dp0_1 + prices[i]);
+            dp0_1 = max(dp0_1, -prices[i]);
+        }
+        return dp0_0;
+    }
+};
+```
+
+
+
+#### 情况二：k 为正无穷
+
+[122. 买卖股票的最佳时机 II - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/description/)
+
+给你一个整数数组 `prices` ，其中 `prices[i]` 表示某支股票第 `i` 天的价格。
+
+在每一天，你可以决定是否购买和/或出售股票。你在任何时候 **最多** 只能持有 **一股** 股票。你也可以先购买，然后在 **同一天** 出售。
+
+返回 *你能获得的 **最大** 利润* 。
+
+**示例 1：**
+
+```
+输入：prices = [7,1,5,3,6,4]
+输出：7
+解释：在第 2 天（股票价格 = 1）的时候买入，在第 3 天（股票价格 = 5）的时候卖出, 这笔交易所能获得利润 = 5 - 1 = 4 。
+     随后，在第 4 天（股票价格 = 3）的时候买入，在第 5 天（股票价格 = 6）的时候卖出, 这笔交易所能获得利润 = 6 - 3 = 3 。
+     总利润为 4 + 3 = 7 。
+```
+
+如果 `k` 为正无穷，则 `k` 和 `k - 1` 可以看成是相同的，因此有 `T[i - 1][k - 1][0] = T[i - 1][k][0] 和 T[i - 1][k - 1][1] = T[i - 1][k][1]`。每天仍有两个未知变量：`T[i][k][0]` 和 `T[i][k][1]`，其中 `k` 为正无穷，状态转移方程如下：
+
+```text
+T[i][k][0] = max(T[i - 1][k][0], T[i - 1][k][1] + prices[i])
+T[i][k][1] = max(T[i - 1][k][1], T[i - 1][k - 1][0] - prices[i]) = max(T[i - 1][k][1], T[i - 1][k][0] - prices[i])
+可化简为：
+       dp[i][0] = max(dp[i - 1][0], dp[i - 1][1] + prices[i]);
+       dp[i][1] = max(dp[i - 1][1], dp[i - 1][0] - prices[i]);
+第0天的base case:
+	   dp[0][0] = 0
+	   dp[0][1] = -prices[0];
+```
+
+第二个状态转移方程利用了 `T[i - 1][k - 1][0] = T[i - 1][k][0]`。
+
+根据上述状态转移方程，可以写出时间复杂度为 O(n) 和空间复杂度为 O(n) 的解法。
+
+完整代码：
+
+```c++
+//等效于k=+∞
+// O(n) , O(n) 
+// class Solution {
+// public:
+//     int maxProfit(vector<int>& prices) {
+//         int n = prices.size();
+//         vector<vector<int>> dp(n, vector<int>(2));
+//         dp[0][0] = 0, dp[0][1] = -prices[0];
+//         for(int i = 1; i < n; i++) {
+//             dp[i][0] = max(dp[i - 1][0], dp[i - 1][1] + prices[i]);
+//             dp[i][1] = max(dp[i - 1][1], dp[i - 1][0] - prices[i]);
+//         }
+//         return dp[n - 1][0];
+//     }
+// };
+
+//优化 O(n) , O(1) 
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        int dp0_0 = 0, dp0_1 = -prices[0];
+        for(int i = 1; i < n; i++) {
+            int dp0_0_temp = dp0_0; //暂存dp0_0，用于计算新的dp0_1
+            dp0_0 = max(dp0_0, dp0_1 + prices[i]);
+            dp0_1 = max(dp0_1, dp0_0_temp - prices[i]);
+        }
+        return dp0_0;
+    }
+};
+```
+
+#### 情况三：k=2
+
+情况三对应的题目是「[123. 买卖股票的最佳时机 III - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iii/)」。
+
+给定一个数组，它的第 `i` 个元素是一支给定的股票在第 `i` 天的价格。
+
+设计一个算法来计算你所能获取的最大利润。你**最多**可以完成 **两笔** 交易。
+
+**注意：**你不能同时参与多笔交易（你**必须在再次购买前出售掉之前的股票**）。
+
+**示例 1:**
+
+```
+输入：prices = [3,3,5,0,0,3,1,4]
+输出：6
+解释：在第 4 天（股票价格 = 0）的时候买入，在第 6 天（股票价格 = 3）的时候卖出，这笔交易所能获得利润 = 3-0 = 3 。
+     随后，在第 7 天（股票价格 = 1）的时候买入，在第 8 天 （股票价格 = 4）的时候卖出，这笔交易所能获得利润 = 4-1 = 3 。
+```
+
+
+
+**分析**：
+
+情况三和情况一相似，区别之处是，对于情况三，每天有四个未知变量：`T[i][1][0]、T[i][1][1]、T[i][2][0]、T[i][2][1]`，状态转移方程如下：
+
+```text
+状态方程：
+T[i][2][0] = max(T[i - 1][2][0], T[i - 1][2][1] + prices[i])
+T[i][2][1] = max(T[i - 1][2][1], T[i - 1][1][0] - prices[i])
+T[i][1][0] = max(T[i - 1][1][0], T[i - 1][1][1] + prices[i])
+T[i][1][1] = max(T[i - 1][1][1], T[i - 1][0][0] - prices[i]) = max(T[i - 1][1][1], -prices[i])
+
+第0天的base case：将i=0带入状态方程得到
+	T[0][2][0] = max(T[-1][2][0], T[-1][2][1] + prices[0]) = T[-1][2][0] = 0
+	T[0][2][1] = max(T[-1][2][1], T[-1][2][1] - prices[0]) = - prices[0]
+	T[0][1][0] = max(T[-1][1][0], T[-1][1][1] + prices[0]) = T[-1][1][0] = 0
+	T[0][1][1] = max(T[-1][1][1], T[-1][1][1] - prices[0]) = - prices[0]
+	
+注意：
+第二个维度表示最多交易次数，而不是实际交易次数，最多交易两次可能实际交易一次，由于第三个维度是 1 表示持有股票，因此一定是买入了股票，又由于在第 0 天只可能买入，不可能卖出，因此 dp[0][2][1] = -prices[0] 就是该状态的最大值。
+实际上不只是 k = 2 的情况如此，k 为任意值的情况也是如此，即 dp[0][i][1] = -prices[0] 对任意 1 <= i <= k 都成立。根据状态转移方程计算也可得到同样的结果
+```
+
+第四个状态转移方程利用了 `T[i][0][0] = 0`。
+
+根据上述状态转移方程，可以写出时间复杂度为 O(n) 和空间复杂度为 O(n) 的解法。
+
+如果注意到第 `i` 天的最大收益只和第 `i - 1` 天的最大收益相关，空间复杂度可以降到 O(1)。
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        int dp[n][3][2];
+        //base case:
+	    dp[0][2][0] = 0;
+	    dp[0][2][1] = -prices[0];
+	    dp[0][1][0] = 0;
+	    dp[0][1][1] = -prices[0];
+        for(int i = 1; i < n; i++) {
+            dp[i][2][0] = max(dp[i - 1][2][0], dp[i - 1][2][1] + prices[i]);
+            dp[i][2][1] = max(dp[i - 1][2][1], dp[i - 1][1][0] - prices[i]);
+            dp[i][1][0] = max(dp[i - 1][1][0], dp[i - 1][1][1] + prices[i]);
+            dp[i][1][1] = max(dp[i - 1][1][1], -prices[i]);
+        }
+        return dp[n - 1][2][0];
+    }
+};
+
+//优化
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        //base case:
+	    int dp2_0 = 0;
+	    int dp2_1 = -prices[0];
+	    int dp1_0 = 0;
+	    int dp1_1 = -prices[0];
+        for(int i = 1; i < n; i++) {
+            dp2_0 = max(dp2_0, dp2_1 + prices[i]);
+            dp2_1 = max(dp2_1, dp1_0 - prices[i]);
+            dp1_0 = max(dp1_0, dp1_1 + prices[i]);
+            dp1_1 = max(dp1_1, -prices[i]);
+        }
+        return dp2_0;
+    }
+}
+```
+
+#### 情况四：k 为任意值
+
+[188. 买卖股票的最佳时机 IV - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iv/description/)
+
+给定一个整数数组 `prices` ，它的第 `i` 个元素 `prices[i]` 是一支给定的股票在第 `i` 天的价格。
+
+设计一个算法来计算你所能获取的最大利润。你最多可以完成 **k** 笔交易。
+
+**注意：**你不能同时参与多笔交易（你必须在再次购买前出售掉之前的股票）。
+
+**示例 1：**
+
+```
+输入：k = 2, prices = [2,4,1]
+输出：2
+解释：在第 1 天 (股票价格 = 2) 的时候买入，在第 2 天 (股票价格 = 4) 的时候卖出，这笔交易所能获得利润 = 4-2 = 2 。
+```
+
+**分析**
+
+​	情况四是最通用的情况，对于每一天需要使用不同的 `k` 值更新所有的最大收益，对应持有 `0` 份股票或 `1` 份股票。**如果 `k` 超过一个临界值，最大收益就不再取决于允许的最大交易次数，而是取决于股票价格数组的长度，因此可以进行优化**。那么这个临界值是什么呢？
+
+​	一个有收益的交易至少需要两天（在前一天买入，在后一天卖出，前提是买入价格低于卖出价格）。**如果股票价格数组的长度为 `n`，则有收益的交易的数量最多为 `n/2`（整数除法）**。因此 **k 的临界值是 `n/2`**。**如果给定的 `k` 不小于临界值，即 `k >= n/2`，则可以将 k 扩展为正无穷，此时问题等价于情况二**。
+
+根据状态转移方程，可以写出时间复杂度为`O(nk)` 和空间复杂度为 `O(nk)`的解法。
+
+完整代码：
+
+```c++
+class Solution {
+public:    
+    int maxProfit(int k, vector<int> &prices) {
+        if(k == 0 || prices.empty()) return 0;
+        // Max profit by k transaction from 0 to i
+        const int n = prices.size();        
+        if(k >= n / 2) return maxProfitInf(prices);
+
+        // balance - the balance with at most j transactions with item 0 to i
+        // profit - the profit with at most j transactions with item 0 to i
+        vector<int> balance(k + 1, INT_MIN), profit(k + 1);
+
+        for(int i = 0; i < n; ++i) {
+            for(int j = 1; j <= k; ++j) {
+                balance[j] = max(balance[j], profit[j - 1] - prices[i]); // whether to buy at prices[i]
+                profit[j] = max(profit[j], balance[j] + prices[i]); // whether to sell at prices[i]
+            }
+        }
+        return profit[k];
+    }
+private:
+    int maxProfitInf(vector<int> &prices) {
+        int buyin = INT_MAX, profit = 0;
+        for(auto & price : prices) {
+            if(price > buyin) profit += price - buyin;                
+            buyin = price;
+        }
+        return profit;
+    }
+};
+```
+
+#### 情况五：k 为正无穷但有冷却时间
+
+[309. 最佳买卖股票时机含冷冻期 - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-cooldown/)
+
+给定一个整数数组`prices`，其中第 `prices[i]` 表示第 `*i*` 天的股票价格 。
+
+设计一个算法计算出最大利润。在满足以下约束条件下，你可以尽可能地完成更多的交易（多次买卖一支股票）:
+
+- **卖出股票后，你无法在第二天买入股票 (即冷冻期为 1 天)。**
+
+**注意：**你不能同时参与多笔交易（你必须在再次购买前出售掉之前的股票）。
+
+**示例 1:**
+
+```
+输入: prices = [1,2,3,0,2]
+输出: 3 
+解释: 对应的交易状态为: [买入, 卖出, 冷冻期, 买入, 卖出]
+```
+
+**分析**
+
+由于具有相同的 k 值，因此情况五和情况二非常相似，不同之处在于情况五有「冷却时间」的限制，因此需要对状态转移方程进行一些修改。
+
+**情况二**的状态转移方程如下：
+
+```tex
+T[i][k][0] = max(T[i - 1][k][0], T[i - 1][k][1] + prices[i])
+T[i][k][1] = max(T[i - 1][k][1], T[i - 1][k][0] - prices[i])
+```
+
+但是在**有「冷却时间」的情况下**，如果在第 `i - 1` 天卖出了股票，就不能在第 `i` 天买入股票。因此，如果要在第 `i` 天买入股票，第二个状态转移方程中就不能使用 `T[i - 1][k][0]`，而应该使用 `T[i - 2][k][0]`。状态转移方程中的别的项保持不变，新的状态转移方程如下：
+
+```tex
+T[i][k][0] = max(T[i - 1][k][0], T[i - 1][k][1] + prices[i])
+T[i][k][1] = max(T[i - 1][k][1], T[i - 2][k][0] - prices[i])
+```
+
+根据上述状态转移方程，可以写出时间复杂度为 O(n) 和空间复杂度为 O(n) 的解法。
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        int dp[n][2];
+        dp[0][0] = 0, dp[0][1] = -prices[0];
+        for(int i = 1; i < n; i++) {
+            dp[i][0] = max(dp[i - 1][0], dp[i - 1][1] + prices[i]);
+            dp[i][1] = max(dp[i - 1][1], (i >= 2 ? dp[i - 2][0] : 0) - prices[i]);
+        }
+        return dp[n - 1][0];
+    }
+};
+
+//空间优化
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        int dp0_0 = 0, dp0_1 = -prices[0];
+        int pre_pre_dp0_0, pre_dp0_0;
+        for(int i = 1; i < n; i++) {
+            pre_pre_dp0_0 = pre_dp0_0;  //pre_pre_dp0_0 是 dp0_0 的前两天的值 
+            pre_dp0_0 = dp0_0;
+            dp0_0 = max(dp0_0, dp0_1 + prices[i]);
+            dp0_1 = max(dp0_1, (i >= 2 ? pre_pre_dp0_0 : 0) - prices[i]);
+        }
+        return dp0_0;
+    }
+};
+```
+
+#### 情况六：k 为正无穷但有手续费
+
+[714. 买卖股票的最佳时机含手续费 - 力扣（Leetcode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/description/)
+
+给定一个整数数组 `prices`，其中 `prices[i]`表示第 `i` 天的股票价格 ；整数 `fee` 代表了交易股票的手续费用。
+
+你可以无限次地完成交易，但是你每笔交易都需要付手续费。如果你已经购买了一个股票，在卖出它之前你就不能再继续购买股票了。
+
+返回获得利润的最大值。
+
+**注意：**这里的一笔交易指买入持有并卖出股票的整个过程，每笔交易你只需要为支付一次手续费。
+
+**示例 1：**
+
+```
+输入：prices = [1, 3, 2, 8, 4, 9], fee = 2
+输出：8
+解释：能够达到的最大利润:  
+在此处买入 prices[0] = 1
+在此处卖出 prices[3] = 8
+在此处买入 prices[4] = 4
+在此处卖出 prices[5] = 9
+总利润: ((8 - 1) - 2) + ((9 - 4) - 2) = 8
+```
+
+由于具有相同的 k 值，因此情况六和情况二非常相似，不同之处在于情况六有「手续费」，因此需要对状态转移方程进行一些修改。
+
+情况二的状态转移方程如下：
+
+```tex
+T[i][k][0] = max(T[i - 1][k][0], T[i - 1][k][1] + prices[i])
+T[i][k][1] = max(T[i - 1][k][1], T[i - 1][k][0] - prices[i])
+```
+
+由于需要对每次交易付手续费，因此在每次买入或卖出股票之后的收益需要扣除手续费，新的状态转移方程有两种表示方法。
+
+第一种表示方法，**在每次买入股票时扣除手续费**：
+
+```tex
+T[i][k][0] = max(T[i - 1][k][0], T[i - 1][k][1] + prices[i])
+T[i][k][1] = max(T[i - 1][k][1], T[i - 1][k][0] - prices[i] - fee)
+```
+
+第二种表示方法，**在每次卖出股票时扣除手续费**：
+
+```tex
+T[i][k][0] = max(T[i - 1][k][0], T[i - 1][k][1] + prices[i] - fee)
+T[i][k][1] = max(T[i - 1][k][1], T[i - 1][k][0] - prices[i])
+```
+
+根据上述状态转移方程，可以写出时间复杂度为 `O(n)` 和空间复杂度为 `O(n)` 的解法。
+
+完整代码：
+
+```c++
+class Solution {
+public:
+    int maxProfit(vector<int>& prices, int fee) {
+        int n = prices.size();
+        int dp[n][2];
+        dp[0][0] = 0, dp[0][1] = -prices[0];
+        for(int i = 1; i < n; i++) {
+            dp[i][0] = max(dp[i - 1][0], dp[i - 1][1] + prices[i] - fee);
+            dp[i][1] = max(dp[i - 1][1], dp[i - 1][0] - prices[i]);
+        }
+        return dp[n - 1][0];
+    }
+};
+
+//空间优化
+class Solution {
+public:
+    int maxProfit(vector<int>& prices, int fee) {
+        int n = prices.size();
+        int dp0_0 = 0, dp0_1 = -prices[0];
+        for(int i = 1; i < n; i++) {
+            int pre_dp0_0 = dp0_0;
+            dp0_0 = max(dp0_0, dp0_1 + prices[i] - fee);
+            dp0_1 = max(dp0_1, pre_dp0_0 - prices[i]);
+        }
+        return dp0_0;
+    }
+};
+```
+
+## 动态规划
+
+### 1.引入
+
+首先，**动态规划问题的一般形式就是求最值**。动态规划其实是运筹学的一种最优化方法，只不过在计算机问题上应用比较多，比如说让你求最长递增子序列，最小编辑距离等等。
+
+既然是要求最值，核心问题是什么呢？**求解动态规划的核心问题是穷举**。因为要求最值，肯定要把所有可行的答案穷举出来，然后在其中找最值呗。
+
+动态规划这么简单，就是穷举就完事了？我看到的动态规划问题都很难啊！
+
+首先，虽然动态规划的核心思想就是穷举求最值，但是问题可以千变万化，穷举所有可行解其实并不是一件容易的事，需要你熟练掌握递归思维，只有列出**正确的「状态转移方程」**，才能正确地穷举。而且，你需要判断算法问题是否**具备「最优子结构」**，是否能够通过子问题的最值得到原问题的最值。另外，动态规划问题**存在「重叠子问题」**，如果暴力穷举的话效率会很低，所以需要你使用「备忘录」或者「DP table」来优化穷举过程，避免不必要的计算。
+
+以上提到的重叠子问题、最优子结构、状态转移方程就是动态规划三要素。具体什么意思等会会举例详解，但是在实际的算法问题中，写出状态转移方程是最困难的，这也就是为什么很多朋友觉得动态规划问题困难的原因，我来提供我总结的一个思维框架，辅助你思考状态转移方程：
+
+**明确 base case -> 明确「状态」-> 明确「选择」 -> 定义 `dp` 数组/函数的含义**。
+
+
+
+1. **「状态转移方程」**
+2. **「最优子结构」**：可以从子问题的最优结果推出更大规模问题的最优结果
+3. **「重叠子问题」**
+
+<img src="E:\Postgraduate\Study\Leetcode\images\dp.png" alt="dp" style="zoom:50%;" />
+
+#### 斐波那契数列
+
+1.**暴力递归**
+
+​	代码虽然简洁易懂，但是十分低效，低效在哪里？假设 n = 20，请画出递归树：
+
+​			[<img src="https://labuladong.gitee.io/algo/images/%e5%8a%a8%e6%80%81%e8%a7%84%e5%88%92%e8%af%a6%e8%a7%a3%e8%bf%9b%e9%98%b6/1.jpg" alt="img" style="zoom:50%;" />](https://labuladong.gitee.io/algo/images/动态规划详解进阶/1.jpg)
+
+> PS：但凡遇到需要递归的问题，最好都画出递归树，这对你分析算法的复杂度，寻找算法低效的原因都有巨大帮助。
+
+这个递归树怎么理解？就是说想要计算原问题 `f(20)`，我就得先计算出子问题 `f(19)` 和 `f(18)`，然后要计算 `f(19)`，我就要先算出子问题 `f(18)` 和 `f(17)`，以此类推。最后遇到 `f(1)` 或者 `f(2)` 的时候，结果已知，就能直接返回结果，递归树不再向下生长了。
+
+**递归算法的时间复杂度怎么计算？就是用子问题个数乘以解决一个子问题需要的时间**。
+
+首先计算子问题个数，即递归树中节点的总数。显然二叉树节点总数为指数级别，所以子问题个数为 `O(2^n)`。
+
+然后计算解决一个子问题的时间，在本算法中，没有循环，只有 `f(n - 1) + f(n - 2)` 一个加法操作，时间为 `O(1)`。
+
+所以，这个算法的时间复杂度为二者相乘，即 `O(2^n)`，指数级别，爆炸。
+
+观察递归树，很明显发现了算法低效的原因：存在大量重复计算，比如 `f(18)` 被计算了两次，而且你可以看到，以 `f(18)` 为根的这个递归树体量巨大，多算一遍，会耗费巨大的时间。更何况，还不止 `f(18)` 这一个节点被重复计算，所以这个算法及其低效。
+
+这就是动态规划问题的第一个性质：**重叠子问题**。下面，我们想办法解决这个问题。
+
+2.**记忆化搜索**
+
+<img src="https://labuladong.gitee.io/algo/images/%e5%8a%a8%e6%80%81%e8%a7%84%e5%88%92%e8%af%a6%e8%a7%a3%e8%bf%9b%e9%98%b6/2.jpg" alt="img" style="zoom:50%;" />
+
+实际上，带「备忘录」的递归算法，把一棵存在巨量冗余的递归树通过「剪枝」，改造成了一幅不存在冗余的递归图，极大减少了子问题（即递归图中节点）的个数。复杂度下降为`O(N)`,每个子问题只计算一次。
+
+<img src="https://labuladong.gitee.io/algo/images/%e5%8a%a8%e6%80%81%e8%a7%84%e5%88%92%e8%af%a6%e8%a7%a3%e8%bf%9b%e9%98%b6/3.jpg" alt="img" style="zoom: 50%;" />
+
+**3.dp**
+
+<img src="https://labuladong.gitee.io/algo/images/%e5%8a%a8%e6%80%81%e8%a7%84%e5%88%92%e8%af%a6%e8%a7%a3%e8%bf%9b%e9%98%b6/4.jpg" alt="img" style="zoom:50%;" />
+
+啥叫「自顶向下」？注意我们刚才画的递归树（或者说图），是从上向下延伸，都是从一个规模较大的原问题比如说 `f(20)`，向下逐渐分解规模，直到 `f(1)` 和 `f(2)` 这两个 base case，然后逐层返回答案，这就叫「自顶向下」。
+
+啥叫「自底向上」？反过来，我们直接从最底下、最简单、问题规模最小、已知结果的 `f(1)` 和 `f(2)`（base case）开始往上推，直到推到我们想要的答案 `f(20)`。这就是「递推」的思路，这也是动态规划一般都脱离了递归，而是由循环迭代完成计算的原因。
+
+这里，引出「状态转移方程」这个名词，实际上就是描述问题结构的数学形式：
+
+​																[![img](https://labuladong.gitee.io/algo/images/%e5%8a%a8%e6%80%81%e8%a7%84%e5%88%92%e8%af%a6%e8%a7%a3%e8%bf%9b%e9%98%b6/fib.png)](https://labuladong.gitee.io/algo/images/动态规划详解进阶/fib.png)
+
+为啥叫「状态转移方程」？其实就是为了听起来高端。
+
+`f(n)` 的函数参数会不断变化，所以你把参数 `n` 想做一个状态，这个状态 `n` 是由状态 `n - 1` 和状态 `n - 2` 转移（相加）而来，这就叫状态转移，仅此而已。
+
+你会发现，上面的几种解法中的所有操作，例如 `return f(n - 1) + f(n - 2)`，`dp[i] = dp[i - 1] + dp[i - 2]`，以及对备忘录或 DP table 的初始化操作，都是围绕这个方程式的不同表现形式。
+
+可见列出「状态转移方程」的重要性，它是解决问题的核心，而且很容易发现，其实状态转移方程直接代表着暴力解法。
+
+完整代码：
+
+```c++
+//暴力递归
+class Solution {
+public:
+    int fib(int n) {
+        if(n == 0 || n == 1) return n;
+        int result;
+        return fib(n - 1) + fib(n - 2);
+    }
+};
+
+//记忆化搜索
+//把一棵存在巨量冗余的递归树通过「剪枝」，改造成了一幅不存在冗余的递归图
+class Solution {
+public:
+    int fib(int n) {
+        vector<int> table(n + 1, 0);
+        return helper(table, n);
+    }
+private:
+    int helper(vector<int>& table, int n) {
+        if(n == 0 || n == 1) return n;
+        if(table[n] != 0) return table[n];
+        table[n] = helper(table, n - 1) + helper(table, n - 2);
+        return table[n];
+    }
+};
+
+//动态规划dp
+class Solution {
+public:
+    int fib(int n) {
+        if(n == 0) return 0;
+        vector<int> dp(n + 1, 0);
+        dp[0] = 0, dp[1] = 1;
+        for(int i = 2; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
+    }
+};
+
+//dp的空间优化
+class Solution {
+public:
+    int fib(int n) {
+        if(n == 0 || n == 1) return n;
+        int dp0 = 0, dp1 = 1, dp2;
+        for(int i = 2; i <= n; i++) {
+            dp2 = dp0 + dp1;
+            dp0 = dp1; dp1 = dp2;
+        }
+        return dp2;
+    }
+};
+```
+
+#### 零钱兑换
+
+[322. 零钱兑换 - 力扣（Leetcode）](https://leetcode.cn/problems/coin-change/description/)
+
+[参考题解：动态规划解题套路框架 :: labuladong的算法小抄 (gitee.io)](https://labuladong.gitee.io/algo/1/7/)
+
+给你 `k` 种面值的硬币，面值分别为 `c1, c2 ... ck`，每种硬币的数量无限，再给一个总金额 `amount`，问你**最少**需要几枚硬币凑出这个金额，如果不可能凑出，算法返回 -1 。
+
+比如说 `k = 3`，面值分别为 1，2，5，总金额 `amount = 11`。那么最少需要 3 枚硬币凑出，即 11 = 5 + 5 + 1。
+
+你认为计算机应该如何解决这个问题？显然，就是把所有可能的凑硬币方法都穷举出来，然后找找看最少需要多少枚硬币。
+
+```c++
+// 暴力递归
+class Solution {
+public:
+    int coinChange(vector<int>& coins, int amount) {
+        // base case
+        if(amount == 0) return 0;
+        if(amount < 0) return -1;
+        int result = INT_MAX;
+        for(auto coin : coins) {
+            // 计算子问题的结果
+            int subproblem = coinChange(coins, amount - coin);
+            // 子问题无解则跳过
+            if(subproblem == -1) continue;
+            // 在子问题中选择最优解，然后硬币个数+1
+            result = min(result, subproblem + 1);
+        }
+        return result == INT_MAX ? -1 : result;
+    }
+};
+
+// 带备忘录的递归
+class Solution {
+public:
+    int coinChange(vector<int>& coins, int amount) {
+        vector<int> dp(amount + 1, INT_MAX); 
+        return helper(coins, amount, dp);
+    }
+private:
+    int helper(vector<int>& coins, int amount, vector<int>& dp) {
+        // base case
+        if(amount == 0) return 0;
+        if(amount < 0) return -1;
+        // 子问题有记录则直接返回
+        if(dp[amount] != INT_MAX) return dp[amount];
+        int result = INT_MAX;
+        for(auto coin : coins) {
+            // 计算子问题的结果
+            int subproblem = helper(coins, amount - coin, dp);
+            // 子问题无解则跳过
+            if(subproblem == -1) continue;
+            // 在子问题中选择最优解，然后硬币个数+1
+            result = min(result, subproblem + 1);
+        }
+        // 记录子问题的结果
+        dp[amount] = result == INT_MAX ? -1 : result;
+        return dp[amount];
+    }
+};
+
+// dp数组
+class Solution {
+public:
+    int coinChange(vector<int>& coins, int amount) {
+        vector<int> dp(amount + 1, amount + 1); //初始化为amount+1 > amount,而初始化为INT_MAX,dp[i - coin] + 1会溢出
+        dp[0] = 0;  // base case
+        for(int i = 1; i <= amount; i++) { // 外层for循环在遍历所有状态的所有取值
+            for(int coin : coins) { // 内层for循环在求所有选择的最小值
+                if(i - coin < 0) continue; 
+                dp[i] = min(dp[i], dp[i - coin] + 1);
+            }
+        }
+        return dp[amount] = dp[amount] == amount + 1 ? -1 : dp[amount];
+    }
+};
+```
+
+### 2.最长递增子序列
+
+**经典题目**
+
+[300. 最长递增子序列 - 力扣（Leetcode）](https://leetcode.cn/problems/longest-increasing-subsequence/description/)
+
+1.`dp[i]`的定义
+
+**dp[i]表示i之前包括i的以nums[i]结尾最长上升子序列的长度**
+
+2.状态转移方程
+
+位置`i`的最长升序子序列等于`j`从`0`到`i-1`各个位置的最长升序子序列 + 1 的最大值。
+
+所以：`if (nums[i] > nums[j]) dp[i] = max(dp[i], dp[j] + 1)`;
+
+**注意这里不是要dp[i] 与 dp[j] + 1进行比较，而是我们要取dp[j] + 1的最大值**。
+
+3.`dp[i]`的初始化
+
+每一个`i`，对应的`dp[i]`（即最长上升子序列）起始大小至少都是1.
+
+4.确定遍历顺序
+
+`dp[i]` 是有`0`到`i-1`各个位置的最长升序子序列 推导而来，那么遍历i一定是从前向后遍历。
+
+<img src="E:\Postgraduate\Study\Leetcode\images\7.jpeg" alt="7" style="zoom:50%;" />
+
+```c++
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> dp(n + 1, 1);   // base case
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < i; j++) {
+                if(nums[i] > nums[j]) {
+                    dp[i] = max(dp[i], dp[j] + 1);
+                }
+            }
+        }
+        return *max_element(dp.begin(), dp.end());
+    }
+};
+```
+
+
+
 # C++杂项
-
-
 
 #### **find**()方法
 
@@ -7027,3 +8095,5 @@ int main(void) {
 ```c++
 There are 2 numbers are greater that 3.
 ```
+
+[]: 
